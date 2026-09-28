@@ -35,19 +35,21 @@ export function PostCard({ post }: PostCardProps) {
   const tags = parseHashtags(post.hashtags);
 
   return (
-    <Link to={`/posts/${post.id}`} className="block">
-      <article className="space-y-3 rounded-xl border-2 border-neutral-900 bg-white p-4">
-        <header className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate font-medium">{post.nickname}</p>
-            <p className="text-xs text-neutral-500">{formatPostDate(post.createdAt)}</p>
-          </div>
-          {isSubscriberOnly(post.isSubscriberOnly) ? (
-            <span className="shrink-0 rounded-full bg-neutral-900 px-2 py-0.5 text-xs text-white">
-              구독자 전용
-            </span>
-          ) : null}
-        </header>
+    <article className="space-y-3 rounded-xl border-2 border-neutral-900 bg-white p-4">
+      <header className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <Link to={`/profile/${post.memberId}`} className="truncate font-medium hover:underline">
+            {post.nickname}
+          </Link>
+          <p className="text-xs text-neutral-500">{formatPostDate(post.createdAt)}</p>
+        </div>
+        {isSubscriberOnly(post.isSubscriberOnly) ? (
+          <span className="shrink-0 rounded-full bg-neutral-900 px-2 py-0.5 text-xs text-white">
+            구독자 전용
+          </span>
+        ) : null}
+      </header>
+      <Link to={`/posts/${post.id}`} className="block space-y-3">
         <p className="whitespace-pre-wrap text-neutral-800">{post.content}</p>
         {post.imageUrls.length > 0 ? (
           <div className="grid gap-2">
@@ -75,7 +77,7 @@ export function PostCard({ post }: PostCardProps) {
             {post.commentCount}
           </span>
         </footer>
-      </article>
-    </Link>
+      </Link>
+    </article>
   );
 }

@@ -73,8 +73,10 @@ export function SnackSupportForm({ targetMemberId, targetNickname }: SnackSuppor
   };
 
   return (
-    <section className="space-y-3 rounded-xl border border-neutral-200 bg-white p-4">
-      <h2 className="font-medium">간식쏘기</h2>
+    <section className="space-y-3 rounded-xl border-2 border-neutral-900 bg-white p-4">
+      <h2 id="snack-title" className="font-medium">
+        간식 쏘기
+      </h2>
       <p className="text-sm text-neutral-500">{targetNickname}에게 후원할 금액을 입력해 주세요.</p>
       <form className="flex items-end gap-2" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="flex-1">

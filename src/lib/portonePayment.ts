@@ -3,7 +3,7 @@ import { completePayment, preparePayment } from "@/api/payments";
 import type { PaymentCompleteResult } from "@/types/payment";
 
 const PAY_METHOD = "EASY_PAY";
-const ORDER_NAME = "간식쏘기";
+const SNACK_ORDER_NAME = "간식쏘기";
 
 export class PaymentCanceledError extends Error {
   constructor(message: string) {
@@ -12,9 +12,10 @@ export class PaymentCanceledError extends Error {
   }
 }
 
-export async function startSnackPayment(input: {
+export async function startPortOnePayment(input: {
   targetMemberId: number;
   totalAmount: number;
+  orderName: string;
 }): Promise<PaymentCompleteResult | null> {
   const storeId = import.meta.env.VITE_PORTONE_STORE_ID?.trim();
   const channelKey = import.meta.env.VITE_PORTONE_CHANNEL_KEY?.trim();
@@ -25,7 +26,7 @@ export async function startSnackPayment(input: {
 
   const prepare = await preparePayment({
     targetMemberId: input.targetMemberId,
-    orderName: ORDER_NAME,
+    orderName: input.orderName,
     totalAmount: input.totalAmount,
     payMethod: PAY_METHOD,
   });
@@ -56,4 +57,11 @@ export async function startSnackPayment(input: {
   }
 
   return completePayment({ paymentId: prepare.paymentId });
+}
+
+export function startSnackPayment(input: {
+  targetMemberId: number;
+  totalAmount: number;
+}): Promise<PaymentCompleteResult | null> {
+  return startPortOnePayment({ ...input, orderName: SNACK_ORDER_NAME });
 }

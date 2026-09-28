@@ -1,4 +1,4 @@
-import { NavLink } from "react-router";
+import { NavLink, useLocation } from "react-router";
 import {
   Home,
   Flame,
@@ -6,8 +6,10 @@ import {
   HelpCircle,
   MessageCircle,
   PenSquare,
+  UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 const navItems = [
   { to: "/", label: "홈", icon: Home, end: true },
@@ -18,6 +20,13 @@ const navItems = [
 ] as const;
 
 export function AppSidebar() {
+  const user = useAuthStore((state) => state.user);
+  const location = useLocation();
+  const myPageTo = user !== null && user.id > 0 ? "/mypage" : "/login";
+  const isMyPage =
+    location.pathname === "/mypage" ||
+    (user !== null && user.id > 0 && location.pathname.startsWith(`/profile/${user.id}`));
+
   return (
     <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r-2 border-neutral-900 bg-white px-4 py-5 md:flex">
       <NavLink to="/" className="font-brand mb-8 px-2 text-3xl tracking-wide">
@@ -40,6 +49,16 @@ export function AppSidebar() {
             {item.label}
           </NavLink>
         ))}
+        <NavLink
+          to={myPageTo}
+          className={cn(
+            "flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-neutral-100",
+            isMyPage && "bg-neutral-900 text-white hover:bg-neutral-800",
+          )}
+        >
+          <UserRound className="size-4" aria-hidden />
+          마이페이지
+        </NavLink>
       </nav>
       <NavLink
         to="/posts/new"

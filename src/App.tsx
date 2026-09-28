@@ -2,14 +2,18 @@ import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { RootLayout } from "@/layouts/RootLayout";
-import { ChatPage, ClubPage, QnaPage, RankingPage } from "@/pages/ComingSoonPage";
+import { ChatPage, ClubPage, PaymentHistoryPage, QnaPage, RankingPage, SubscriptionPage } from "@/pages/ComingSoonPage";
+import { SubscribePage } from "@/pages/SubscribePage";
 import { FeedPage } from "@/pages/FeedPage";
+import { FollowListPage } from "@/pages/FollowListPage";
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { LoginPage } from "@/pages/LoginPage";
+import { MyPageRedirect } from "@/pages/MyPageRedirect";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { PaymentReturnPage } from "@/pages/PaymentReturnPage";
 import { PostComposerPage } from "@/pages/PostComposerPage";
 import { PostDetailPage } from "@/pages/PostDetailPage";
+import { ProfileEditPage } from "@/pages/ProfileEditPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 import { SignupAccountPage } from "@/pages/SignupAccountPage";
@@ -37,6 +41,46 @@ const router = createBrowserRouter([
       { path: "qna", element: <QnaPage /> },
       { path: "chat", element: <ChatPage /> },
       {
+        path: "mypage",
+        element: (
+          <ProtectedRoute>
+            <MyPageRedirect />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "profile/:memberId/edit",
+        element: (
+          <ProtectedRoute>
+            <ProfileEditPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "profile/:memberId/followers",
+        element: (
+          <ProtectedRoute>
+            <FollowListPage kind="followers" />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "profile/:memberId/followings",
+        element: (
+          <ProtectedRoute>
+            <FollowListPage kind="followings" />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "profile/:memberId/subscribe",
+        element: (
+          <ProtectedRoute>
+            <SubscribePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "posts/new",
         element: (
           <ProtectedRoute>
@@ -58,6 +102,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ProfilePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "payments/history",
+        element: (
+          <ProtectedRoute>
+            <PaymentHistoryPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "subscriptions",
+        element: (
+          <ProtectedRoute>
+            <SubscriptionPage />
           </ProtectedRoute>
         ),
       },

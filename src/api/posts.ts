@@ -64,3 +64,9 @@ export function createComment(postId: number, content: string): Promise<PostComm
     body: { content },
   });
 }
+
+export function deletePost(postId: number): Promise<void> {
+  return apiClient<void>(`/posts/${postId}`, {
+    method: "DELETE",
+  });
+}

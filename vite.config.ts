@@ -20,6 +20,12 @@ export default defineConfig(({ mode }) => {
         "/api": {
           target: apiProxyTarget,
           changeOrigin: true,
+          configure: (proxy) => {
+            proxy.on("proxyReq", (proxyReq) => {
+              proxyReq.removeHeader("origin");
+              proxyReq.removeHeader("referer");
+            });
+          },
         },
       },
     },

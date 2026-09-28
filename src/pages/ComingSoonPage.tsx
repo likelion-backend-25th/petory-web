@@ -26,3 +26,11 @@ export function QnaPage() {
 export function ChatPage() {
   return <ComingSoonPage title="채팅" />;
 }
+
+export function PaymentHistoryPage() {
+  return <ComingSoonPage title="결제 내역" />;
+}
+
+export function SubscriptionPage() {
+  return <ComingSoonPage title="구독 관리" />;
+}

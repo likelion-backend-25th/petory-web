@@ -6,7 +6,7 @@ import type { PaymentCompleteResult } from "@/types/payment";
 function resultText(result: PaymentCompleteResult): string {
   if (result.status === "PAID") {
     const amount = new Intl.NumberFormat("ko-KR").format(result.paidAmount);
-    return `${amount}원 후원 완료!`;
+    return `${amount}원 결제가 완료되었습니다.`;
   }
   if (result.status === "READY") {
     return "결제 대기 중입니다.";
