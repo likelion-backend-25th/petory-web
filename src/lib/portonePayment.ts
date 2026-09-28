@@ -2,7 +2,7 @@ import * as PortOne from "@portone/browser-sdk/v2";
 import { completePayment, preparePayment } from "@/api/payments";
 import type { PaymentCompleteResult } from "@/types/payment";
 
-const PAY_METHOD = "CARD";
+const PAY_METHOD = "EASY_PAY";
 const ORDER_NAME = "간식쏘기";
 
 export class PaymentCanceledError extends Error {
@@ -40,6 +40,9 @@ export async function startSnackPayment(input: {
     totalAmount: prepare.totalAmount,
     currency: "KRW",
     payMethod: PAY_METHOD,
+    easyPay: {
+      easyPayProvider: "KAKAOPAY",
+    },
     redirectUrl,
   });
 
