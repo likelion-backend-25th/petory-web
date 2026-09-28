@@ -1,5 +1,6 @@
 import { NavLink } from "react-router";
 import { cn } from "@/lib/cn";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const items = [
   { to: "/", label: "홈", end: true },
@@ -12,6 +13,8 @@ const items = [
 ] as const;
 
 export function MobileNav() {
+  const isAdmin = useIsAdmin();
+
   return (
     <nav className="flex gap-2 overflow-x-auto border-b-2 border-neutral-900 bg-white px-3 py-2 text-xs md:hidden">
       {items.map((item) => (
@@ -29,6 +32,19 @@ export function MobileNav() {
           {item.label}
         </NavLink>
       ))}
+      {isAdmin ? (
+        <NavLink
+          to="/admin"
+          className={({ isActive }) =>
+            cn(
+              "shrink-0 rounded-md border-2 border-neutral-900 px-2 py-1",
+              isActive && "bg-neutral-900 text-white",
+            )
+          }
+        >
+          관리자
+        </NavLink>
+      ) : null}
     </nav>
   );
 }

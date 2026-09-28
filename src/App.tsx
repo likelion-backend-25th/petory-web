@@ -1,8 +1,10 @@
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
+import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { RootLayout } from "@/layouts/RootLayout";
 import { ChatPage, ClubPage, PaymentHistoryPage, QnaPage, RankingPage, SubscriptionPage } from "@/pages/ComingSoonPage";
+import { AdminPage } from "@/pages/AdminPage";
 import { SubscribePage } from "@/pages/SubscribePage";
 import { FeedPage } from "@/pages/FeedPage";
 import { FollowListPage } from "@/pages/FollowListPage";
@@ -40,6 +42,16 @@ const router = createBrowserRouter([
       { path: "club", element: <ClubPage /> },
       { path: "qna", element: <QnaPage /> },
       { path: "chat", element: <ChatPage /> },
+      {
+        path: "admin",
+        element: (
+          <ProtectedRoute>
+            <AdminRoute>
+              <AdminPage />
+            </AdminRoute>
+          </ProtectedRoute>
+        ),
+      },
       {
         path: "mypage",
         element: (

@@ -25,14 +25,45 @@ export function readJwtClaims(token: string): Record<string, unknown> | null {
   }
 }
 
+function readRole(claims: Record<string, unknown>): string {
+  if (typeof claims.role === "string" && claims.role.trim() !== "") {
+    return claims.role;
+  }
+  if (Array.isArray(claims.roles)) {
+    const first = claims.roles.find((item): item is string => typeof item === "string");
+    return first ?? "";
+  }
+  return "";
+}
+
+export function readRolesFromAccessToken(token: string): string[] {
+  const claims = readJwtClaims(token);
+  if (claims === null) {
+    return [];
+  }
+  const roles: string[] = [];
+  if (typeof claims.role === "string") {
+    roles.push(claims.role);
+  }
+  if (Array.isArray(claims.roles)) {
+    for (const item of claims.roles) {
+      if (typeof item === "string") {
+        roles.push(item);
+      }
+    }
+  }
+  return roles;
+}
+
 export function readUserFromAccessToken(token: string): {
   id: number | null;
   email: string;
   nickname: string;
+  role: string;
 } {
   const claims = readJwtClaims(token);
   if (claims === null) {
-    return { id: null, email: "", nickname: "" };
+    return { id: null, email: "", nickname: "", role: "" };
   }
 
   const id =
@@ -50,5 +81,5 @@ export function readUserFromAccessToken(token: string): {
 
   const nickname = typeof claims.nickname === "string" ? claims.nickname : "";
 
-  return { id, email, nickname };
+  return { id, email, nickname, role: readRole(claims) };
 }

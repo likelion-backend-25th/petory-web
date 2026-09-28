@@ -6,9 +6,11 @@ import {
   HelpCircle,
   MessageCircle,
   PenSquare,
+  Shield,
   UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const navItems = [
@@ -21,6 +23,7 @@ const navItems = [
 
 export function AppSidebar() {
   const user = useAuthStore((state) => state.user);
+  const isAdmin = useIsAdmin();
   const location = useLocation();
   const myPageTo = user !== null && user.id > 0 ? "/mypage" : "/login";
   const isMyPage =
@@ -59,6 +62,20 @@ export function AppSidebar() {
           <UserRound className="size-4" aria-hidden />
           마이페이지
         </NavLink>
+        {isAdmin ? (
+          <NavLink
+            to="/admin"
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-neutral-100",
+                isActive && "bg-neutral-900 text-white hover:bg-neutral-800",
+              )
+            }
+          >
+            <Shield className="size-4" aria-hidden />
+            관리자
+          </NavLink>
+        ) : null}
       </nav>
       <NavLink
         to="/posts/new"

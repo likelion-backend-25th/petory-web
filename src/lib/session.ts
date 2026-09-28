@@ -12,6 +12,7 @@ export async function signIn(payload: LoginRequest): Promise<void> {
     id: claims.id ?? 0,
     email: claims.email,
     nickname: claims.nickname,
+    role: claims.role,
   };
 
   useAuthStore.getState().setSession(user, tokens.accessToken, tokens.refreshToken);
@@ -23,6 +24,7 @@ export async function signIn(payload: LoginRequest): Promise<void> {
         id: profile.id,
         email: profile.email ?? user.email,
         nickname: profile.nickname || user.nickname,
+        role: profile.role || user.role,
       };
       useAuthStore.getState().setSession(user, tokens.accessToken, tokens.refreshToken);
     } catch {
