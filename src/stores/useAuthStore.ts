@@ -5,18 +5,19 @@ import type { User } from "@/types/user";
 interface AuthState {
   user: User | null;
   accessToken: string | null;
-  setSession: (user: User, accessToken: string) => void;
+  refreshToken: string | null;
+  setSession: (user: User, accessToken: string, refreshToken: string) => void;
   clearSession: () => void;
 }
 
-// 새로고침 후에도 로그인 상태를 유지하기 위해 persist를 사용한다.
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
       accessToken: null,
-      setSession: (user, accessToken) => set({ user, accessToken }),
-      clearSession: () => set({ user: null, accessToken: null }),
+      refreshToken: null,
+      setSession: (user, accessToken, refreshToken) => set({ user, accessToken, refreshToken }),
+      clearSession: () => set({ user: null, accessToken: null, refreshToken: null }),
     }),
     {
       name: "patory-auth",

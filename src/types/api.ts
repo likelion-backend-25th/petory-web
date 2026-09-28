@@ -20,10 +20,12 @@ export function readApiErrorMessage(body: unknown, status: number): string {
 
 export class ApiError extends Error {
   readonly status: number;
+  readonly body: unknown;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, body: unknown = null) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.body = body;
   }
 }

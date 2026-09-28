@@ -49,7 +49,9 @@ export function PostDetailPage() {
     <article className="mx-auto w-full max-w-lg space-y-5">
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate font-medium">{toHandle(post.authorName)}</p>
+          <Link to={`/profile/${post.memberId}`} className="truncate font-medium hover:underline">
+            {toHandle(post.authorName)}
+          </Link>
           <p className="text-xs text-neutral-500">{formatPostDate(post.createdAt)}</p>
         </div>
         {isSubscriberOnly(post.isSubscriberOnly) ? (
