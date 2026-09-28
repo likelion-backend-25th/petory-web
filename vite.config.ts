@@ -5,8 +5,8 @@ import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  // 로컬에서는 상대경로 /api/v1을 Spring Boot(기본 8080)로 넘긴다.
-  const apiProxyTarget = env.VITE_API_PROXY_TARGET || "http://localhost:8080";
+  // 로컬에서 /api 는 원격 Spring Boot로 넘긴다. 로컬 서버를 쓸 때는 .env의 VITE_API_PROXY_TARGET을 바꾼다.
+  const apiProxyTarget = env.VITE_API_PROXY_TARGET || "http://3.39.133.123:8080";
 
   return {
     plugins: [react(), tailwindcss()],

@@ -18,11 +18,9 @@ function MediaFallback() {
 
 function PostImage({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false);
-
   if (failed) {
     return <MediaFallback />;
   }
-
   return (
     <img
       src={src}
@@ -38,7 +36,7 @@ export function PostCard({ post }: PostCardProps) {
 
   return (
     <Link to={`/posts/${post.id}`} className="block">
-      <article className="space-y-3 rounded-xl border border-neutral-200 bg-white p-4 transition-colors hover:border-neutral-300">
+      <article className="space-y-3 rounded-xl border-2 border-neutral-900 bg-white p-4">
         <header className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate font-medium">{post.nickname}</p>

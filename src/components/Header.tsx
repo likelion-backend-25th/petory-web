@@ -1,36 +1,64 @@
-import { Link } from "react-router";
-import { Bell } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router";
+import { Bell, Search, UserRound } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 export function Header() {
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
   const clearSession = useAuthStore((state) => state.clearSession);
   const isLoggedIn = accessToken !== null;
+  const [query, setQuery] = useState("");
+
+  const onSearch = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    const next = query.trim();
+    void navigate(next === "" ? "/" : `/?q=${encodeURIComponent(next)}`);
+  };
 
   return (
-    <header className="border-b border-neutral-200 bg-white">
-      <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-3 px-4">
-        <Link to="/" className="text-base font-semibold tracking-tight">
-          Patory
+    <header className="border-b-2 border-neutral-900 bg-white">
+      <div className="flex h-14 items-center justify-between gap-3 px-4">
+        <Link to="/" className="font-brand text-xl tracking-wide md:hidden">
+          petory
         </Link>
-        <div className="flex items-center gap-3 text-sm text-neutral-700">
+        <form className="mx-auto flex w-full max-w-md items-center gap-2" onSubmit={onSearch}>
+          <label className="sr-only" htmlFor="feed-search">
+            검색
+          </label>
+          <div className="relative w-full">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-400" />
+            <input
+              id="feed-search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="검색"
+              className="h-9 w-full rounded-full border-2 border-neutral-900 bg-white pr-3 pl-9 text-sm outline-none"
+            />
+          </div>
+        </form>
+        <div className="flex items-center gap-2 text-sm">
           <button type="button" aria-label="알림" className="rounded-md p-1 hover:bg-neutral-100">
             <Bell className="size-5" />
           </button>
           {isLoggedIn ? (
             <>
               {user !== null && user.id > 0 ? (
-                <Link to={`/profile/${user.id}`} className="max-w-28 truncate hover:underline">
-                  {user.nickname || "내 프로필"}
+                <Link
+                  to={`/profile/${user.id}`}
+                  aria-label="내 프로필"
+                  className="flex size-8 items-center justify-center rounded-full border-2 border-neutral-900"
+                >
+                  <UserRound className="size-4" />
                 </Link>
               ) : null}
-              <button type="button" className="text-neutral-500 hover:text-neutral-900" onClick={clearSession}>
+              <button type="button" className="hidden text-neutral-500 hover:text-neutral-900 sm:inline" onClick={clearSession}>
                 로그아웃
               </button>
             </>
           ) : (
-            <Link to="/login" className="rounded-lg bg-neutral-900 px-3 py-1.5 font-medium text-white">
+            <Link to="/login" className="rounded-md border-2 border-neutral-900 px-3 py-1 font-medium">
               로그인
             </Link>
           )}

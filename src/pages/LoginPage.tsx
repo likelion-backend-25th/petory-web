@@ -3,8 +3,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router";
 import { z } from "zod";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { AuthField } from "@/components/auth/AuthField";
+import { BrandLogo } from "@/components/auth/BrandLogo";
+import { SketchButton } from "@/components/auth/SketchButton";
+import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
 import { signIn } from "@/lib/session";
 
 const loginSchema = z.object({
@@ -17,6 +20,8 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 interface LoginLocationState {
   from?: string;
 }
+
+const SOCIAL_UNAVAILABLE = "소셜 로그인은 아직 연결되지 않았습니다.";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -45,14 +50,17 @@ export function LoginPage() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-sm space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">로그인</h1>
-        <p className="text-sm text-neutral-500">간식쏘기는 로그인한 회원만 이용할 수 있습니다.</p>
-      </div>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Input label="이메일" type="email" autoComplete="email" error={errors.email?.message} {...register("email")} />
-        <Input
+    <AuthCard>
+      <BrandLogo />
+      <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <AuthField
+          label="아이디"
+          type="email"
+          autoComplete="email"
+          error={errors.email?.message}
+          {...register("email")}
+        />
+        <AuthField
           label="비밀번호"
           type="password"
           autoComplete="current-password"
@@ -60,13 +68,28 @@ export function LoginPage() {
           {...register("password")}
         />
         {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <SketchButton type="submit" filled className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "로그인 중..." : "로그인"}
-        </Button>
+        </SketchButton>
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            to="/signup"
+            className="flex h-9 items-center justify-center rounded-md border-2 border-neutral-900 text-sm hover:bg-neutral-50"
+          >
+            회원가입 하기
+          </Link>
+          <Link
+            to="/forgot-password"
+            className="flex h-9 items-center justify-center rounded-md border-2 border-neutral-900 text-sm hover:bg-neutral-50"
+          >
+            비밀번호 찾기
+          </Link>
+        </div>
       </form>
-      <Link to="/" className="block text-center text-sm text-neutral-500 underline">
-        피드로 돌아가기
-      </Link>
-    </section>
+      <SocialAuthButtons
+        onGoogle={() => setSubmitError(SOCIAL_UNAVAILABLE)}
+        onKakao={() => setSubmitError(SOCIAL_UNAVAILABLE)}
+      />
+    </AuthCard>
   );
 }

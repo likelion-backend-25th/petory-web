@@ -58,7 +58,12 @@ export async function apiClient<T>(
 
     if (!response.ok) {
       // 로그인 실패(401)와 만료된 세션을 구분하기 위해 인증 요청은 세션을 유지한다.
-      if (response.status === 401 && path !== "/login" && !path.startsWith("/auth/")) {
+      if (
+        response.status === 401 &&
+        path !== "/login" &&
+        path !== "/signup" &&
+        !path.startsWith("/auth/")
+      ) {
         useAuthStore.getState().clearSession();
       }
 
@@ -70,7 +75,12 @@ export async function apiClient<T>(
       return undefined as T;
     }
 
-    return (await response.json()) as T;
+    const text = await response.text();
+    if (text.trim() === "") {
+      return undefined as T;
+    }
+
+    return JSON.parse(text) as T;
   } catch (error: unknown) {
     if (error instanceof ApiError) {
       throw error;

@@ -21,6 +21,14 @@ export interface PostListSlice {
   lastPostId: number | null;
 }
 
+export interface PostComment {
+  id: number;
+  commenterId: number;
+  commenterNickname: string;
+  content: string;
+  createdAt: string;
+}
+
 export interface PostDetail {
   id: number;
   content: string;
@@ -32,4 +40,27 @@ export interface PostDetail {
   authorProfileImage: string | null;
   createdAt: string;
   updatedAt: string;
+  comments: PostComment[];
+}
+
+export interface PostCreateRequest {
+  content: string;
+  bgmUrl?: string;
+  isSubscriberOnly: number;
+  hashtags: string;
+}
+
+export interface PostCreateResponse {
+  id: number;
+}
+
+export interface PostUpdateRequest {
+  content: string;
+  bgmUrl?: string;
+  isSubscriberOnly: number;
+  hashtags: string;
+}
+
+export interface CommentCreateRequest {
+  content: string;
 }

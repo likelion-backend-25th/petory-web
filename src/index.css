@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --font-brand: "Gaegu", cursive;
+}
+
 body {
   @apply min-h-screen bg-neutral-50 text-neutral-900 antialiased;
 }

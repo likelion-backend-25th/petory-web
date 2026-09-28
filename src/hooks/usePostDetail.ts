@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
-import { getPost } from "@/api/posts";
-import type { PostDetail } from "@/types/post";
+import { getPost, getPosts } from "@/api/posts";
+import type { PostComment, PostDetail, PostListItem } from "@/types/post";
+
+export interface PostDetailView extends PostDetail {
+  imageUrls: string[];
+  likeCount: number;
+  commentCount: number;
+  neighbors: { prevId: number | null; nextId: number | null };
+}
 
 interface PostDetailState {
-  post: PostDetail | null;
+  post: PostDetailView | null;
   status: "loading" | "error" | "success";
   errorMessage: string | null;
 }
@@ -21,17 +28,25 @@ function parsePostId(value: string | undefined): number | null {
   return Number(value);
 }
 
+function neighborsOf(postId: number, list: PostListItem[]): { prevId: number | null; nextId: number | null } {
+  const ids = list.map((item) => item.id);
+  const index = ids.indexOf(postId);
+  if (index < 0) {
+    return { prevId: null, nextId: null };
+  }
+  return {
+    prevId: ids[index + 1] ?? null,
+    nextId: ids[index - 1] ?? null,
+  };
+}
+
 export function usePostDetail(postIdParam: string | undefined) {
   const postId = parsePostId(postIdParam);
   const [state, setState] = useState<PostDetailState>(initialState);
 
   useEffect(() => {
     if (postId === null) {
-      setState({
-        post: null,
-        status: "error",
-        errorMessage: "올바르지 않은 게시글입니다.",
-      });
+      setState({ post: null, status: "error", errorMessage: "올바르지 않은 게시글입니다." });
       return;
     }
 
@@ -40,11 +55,26 @@ export function usePostDetail(postIdParam: string | undefined) {
 
     const load = async (): Promise<void> => {
       try {
-        const post = await getPost(postId, controller.signal);
+        const [detail, slice] = await Promise.all([
+          getPost(postId, controller.signal),
+          getPosts({ size: 30 }, controller.signal),
+        ]);
         if (controller.signal.aborted) {
           return;
         }
-        setState({ post, status: "success", errorMessage: null });
+        const listed = slice.content.find((item) => item.id === postId);
+        const comments: PostComment[] = detail.comments;
+        setState({
+          post: {
+            ...detail,
+            imageUrls: listed?.imageUrls ?? [],
+            likeCount: listed?.likeCount ?? 0,
+            commentCount: listed?.commentCount ?? comments.length,
+            neighbors: neighborsOf(postId, slice.content),
+          },
+          status: "success",
+          errorMessage: null,
+        });
       } catch (error: unknown) {
         if (controller.signal.aborted) {
           return;
