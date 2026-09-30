@@ -12,6 +12,7 @@ export function PostDetailPage() {
   const { post, status, errorMessage } = usePostDetail(postId);
   const myId = useAuthStore((state) => state.user?.id ?? null);
   const [liked, setLiked] = useState(false);
+  const [countOverride, setCountOverride] = useState<{ postId: number; count: number } | null>(null);
 
   if (status === "loading") {
     return <p className="text-neutral-500">게시글을 불러오는 중...</p>;
@@ -32,6 +33,8 @@ export function PostDetailPage() {
   const tags = parseHashtags(post.hashtags);
   const isOwner = myId !== null && myId > 0 && myId === post.memberId;
   const likeCount = post.likeCount + (liked ? 1 : 0);
+  const commentCount =
+    countOverride !== null && countOverride.postId === post.id ? countOverride.count : post.comments.length;
 
   return (
     <article className="space-y-4 rounded-xl border-2 border-neutral-900 bg-white p-5">
@@ -68,7 +71,7 @@ export function PostDetailPage() {
           </button>
           <span className="inline-flex items-center gap-1">
             <MessageCircle className="size-4" />
-            {post.comments.length}
+            {commentCount}
           </span>
         </div>
       </div>
@@ -96,7 +99,12 @@ export function PostDetailPage() {
         </Link>
       ) : null}
 
-      <PostCommentPanel postId={post.id} comments={post.comments} />
+      <PostCommentPanel
+        key={post.id}
+        postId={post.id}
+        comments={post.comments}
+        onCountChange={(count) => setCountOverride({ postId: post.id, count })}
+      />
     </article>
   );
 }

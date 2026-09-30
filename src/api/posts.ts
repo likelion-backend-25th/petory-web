@@ -65,6 +65,19 @@ export function createComment(postId: number, content: string): Promise<PostComm
   });
 }
 
+export function updateComment(postId: number, commentId: number, content: string): Promise<PostComment> {
+  return apiClient<PostComment>(`/posts/${postId}/comments/${commentId}`, {
+    method: "PUT",
+    body: { content },
+  });
+}
+
+export function deleteComment(postId: number, commentId: number): Promise<void> {
+  return apiClient<void>(`/posts/${postId}/comments/${commentId}`, {
+    method: "DELETE",
+  });
+}
+
 export function deletePost(postId: number): Promise<void> {
   return apiClient<void>(`/posts/${postId}`, {
     method: "DELETE",
