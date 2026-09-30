@@ -1,20 +1,27 @@
-import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { Bell, Search, UserRound } from "lucide-react";
+import { normalizeHashtag } from "@/lib/postFormat";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 export function Header() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlQuery = searchParams.get("q") ?? "";
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
   const clearSession = useAuthStore((state) => state.clearSession);
   const isLoggedIn = accessToken !== null;
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(urlQuery);
+
+  useEffect(() => {
+    setQuery(urlQuery);
+  }, [urlQuery]);
 
   const onSearch = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    const next = query.trim();
-    void navigate(next === "" ? "/" : `/?q=${encodeURIComponent(next)}`);
+    const hashtag = normalizeHashtag(query);
+    void navigate(hashtag === "" ? "/" : `/?q=${encodeURIComponent(hashtag)}`);
   };
 
   return (
@@ -25,7 +32,7 @@ export function Header() {
         </Link>
         <form className="mx-auto flex w-full max-w-md items-center gap-2" onSubmit={onSearch}>
           <label className="sr-only" htmlFor="feed-search">
-            검색
+            해시태그 검색
           </label>
           <div className="relative w-full">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-400" />
@@ -33,7 +40,7 @@ export function Header() {
               id="feed-search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="검색"
+              placeholder="#해시태그"
               className="h-9 w-full rounded-full border-2 border-neutral-900 bg-white pr-3 pl-9 text-sm outline-none"
             />
           </div>

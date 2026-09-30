@@ -5,14 +5,6 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# HTTPS 페이지에서 HTTP 백엔드를 직접 호출하면 브라우저가 차단한다.
-# /api 요청을 같은 오리진으로 받아 Spring Boot로 넘긴다.
-[[redirects]]
-  from = "/api/*"
-  to = "http://3.39.133.123:8080/api/:splat"
-  status = 200
-  force = true
-
 [[redirects]]
   from = "/*"
   to = "/index.html"

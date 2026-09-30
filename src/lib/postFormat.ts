@@ -12,6 +12,11 @@ export function formatPostDate(value: string): string {
   return `${year}-${month}-${day} ${hour}:${minute}`;
 }
 
+export function normalizeHashtag(value: string): string {
+  const token = value.trim().split(/\s+/)[0] ?? "";
+  return token.replace(/^#+/, "");
+}
+
 export function parseHashtags(hashtags: string): string[] {
   return hashtags
     .split(/\s+/)
