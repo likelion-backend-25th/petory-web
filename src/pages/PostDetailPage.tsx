@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { Heart, MessageCircle } from "lucide-react";
+import { toggleLike } from "@/api/posts";
 import { PostCommentPanel } from "@/components/PostCommentPanel";
 import { PostGallery } from "@/components/PostGallery";
 import { usePostDetail } from "@/hooks/usePostDetail";
@@ -9,10 +10,34 @@ import { useAuthStore } from "@/stores/useAuthStore";
 
 export function PostDetailPage() {
   const { postId } = useParams();
+  const navigate = useNavigate();
   const { post, status, errorMessage } = usePostDetail(postId);
   const myId = useAuthStore((state) => state.user?.id ?? null);
-  const [liked, setLiked] = useState(false);
+  const isLoggedIn = useAuthStore((state) => state.accessToken) !== null;
+  const [likeState, setLikeState] = useState<{ postId: number; liked: boolean; count: number } | null>(null);
+  const [likeBusy, setLikeBusy] = useState(false);
+  const [likeError, setLikeError] = useState<string | null>(null);
   const [countOverride, setCountOverride] = useState<{ postId: number; count: number } | null>(null);
+
+  const onLike = async (): Promise<void> => {
+    if (post === null) {
+      return;
+    }
+    if (!isLoggedIn) {
+      void navigate("/login", { state: { from: `/posts/${post.id}` } });
+      return;
+    }
+    setLikeBusy(true);
+    setLikeError(null);
+    try {
+      const result = await toggleLike(post.id);
+      setLikeState({ postId: post.id, liked: result.liked, count: result.likeCount });
+    } catch (error: unknown) {
+      setLikeError(error instanceof Error ? error.message : "알 수 없는 오류");
+    } finally {
+      setLikeBusy(false);
+    }
+  };
 
   if (status === "loading") {
     return <p className="text-neutral-500">게시글을 불러오는 중...</p>;
@@ -32,7 +57,8 @@ export function PostDetailPage() {
 
   const tags = parseHashtags(post.hashtags);
   const isOwner = myId !== null && myId > 0 && myId === post.memberId;
-  const likeCount = post.likeCount + (liked ? 1 : 0);
+  const liked = likeState !== null && likeState.postId === post.id ? likeState.liked : false;
+  const likeCount = likeState !== null && likeState.postId === post.id ? likeState.count : post.likeCount;
   const commentCount =
     countOverride !== null && countOverride.postId === post.id ? countOverride.count : post.comments.length;
 
@@ -63,8 +89,11 @@ export function PostDetailPage() {
         <div className="flex items-center gap-3 text-neutral-600">
           <button
             type="button"
-            className={`inline-flex items-center gap-1 ${liked ? "text-red-500" : ""}`}
-            onClick={() => setLiked((value) => !value)}
+            aria-pressed={liked}
+            aria-label="좋아요"
+            disabled={likeBusy}
+            className={`inline-flex items-center gap-1 disabled:opacity-50 ${liked ? "text-red-500" : ""}`}
+            onClick={() => void onLike()}
           >
             <Heart className={`size-4 ${liked ? "fill-current" : ""}`} />
             {likeCount}
@@ -75,6 +104,7 @@ export function PostDetailPage() {
           </span>
         </div>
       </div>
+      {likeError ? <p className="text-xs text-red-600">{likeError}</p> : null}
 
       {isSubscriberOnly(post.isSubscriberOnly) ? (
         <p className="text-xs text-neutral-500">구독자 전용 게시글</p>

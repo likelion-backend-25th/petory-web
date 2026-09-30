@@ -6,6 +6,7 @@ import type {
   PostDetail,
   PostListSlice,
   PostUpdateRequest,
+  LikeToggleResult,
 } from "@/types/post";
 
 export interface GetPostsParams {
@@ -76,6 +77,18 @@ export function deleteComment(postId: number, commentId: number): Promise<void> 
   return apiClient<void>(`/posts/${postId}/comments/${commentId}`, {
     method: "DELETE",
   });
+}
+
+export async function toggleLike(postId: number): Promise<LikeToggleResult> {
+  const body: unknown = await apiClient<unknown>(`/posts/${postId}/likes`, { method: "POST" });
+  if (typeof body !== "object" || body === null) {
+    throw new Error("좋아요 응답을 해석할 수 없습니다.");
+  }
+  const record = body as Record<string, unknown>;
+  if (typeof record.liked !== "boolean" || typeof record.likeCount !== "number") {
+    throw new Error("좋아요 응답을 해석할 수 없습니다.");
+  }
+  return { liked: record.liked, likeCount: record.likeCount };
 }
 
 export function deletePost(postId: number): Promise<void> {

@@ -64,3 +64,8 @@ export interface PostUpdateRequest {
 export interface CommentCreateRequest {
   content: string;
 }
+
+export interface LikeToggleResult {
+  liked: boolean;
+  likeCount: number;
+}
