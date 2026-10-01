@@ -1,35 +1,12 @@
-import { useState } from "react";
 import { Link } from "react-router";
 import { Eye, Heart, MessageCircle } from "lucide-react";
+import { PostImageCarousel } from "@/components/PostGallery";
 import { formatPostDate, isSubscriberOnly, parseHashtags } from "@/lib/postFormat";
 import type { PostListItem } from "@/types/post";
 
 interface PostCardProps {
   post: PostListItem;
   detailPath?: string;
-}
-
-function MediaFallback() {
-  return (
-    <div className="flex aspect-video items-center justify-center rounded-lg bg-neutral-100 text-sm text-neutral-400">
-      이미지를 불러올 수 없습니다
-    </div>
-  );
-}
-
-function PostImage({ src, alt }: { src: string; alt: string }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) {
-    return <MediaFallback />;
-  }
-  return (
-    <img
-      src={src}
-      alt={alt}
-      className="aspect-video w-full rounded-lg object-cover"
-      onError={() => setFailed(true)}
-    />
-  );
 }
 
 export function PostCard({ post, detailPath = `/posts/${post.id}` }: PostCardProps) {
@@ -50,15 +27,19 @@ export function PostCard({ post, detailPath = `/posts/${post.id}` }: PostCardPro
           </span>
         ) : null}
       </header>
-      <Link to={detailPath} className="block space-y-3">
+      <Link to={detailPath} className="block">
         <p className="whitespace-pre-wrap text-neutral-800">{post.content}</p>
-        {post.imageUrls.length > 0 ? (
-          <div className="grid gap-2">
-            {post.imageUrls.map((url) => (
-              <PostImage key={url} src={url} alt={post.content} />
-            ))}
-          </div>
-        ) : null}
+      </Link>
+      {post.imageUrls.length > 0 ? (
+        <PostImageCarousel
+          key={post.id}
+          imageUrls={post.imageUrls}
+          alt={post.content}
+          href={detailPath}
+          imageClassName="aspect-video w-full rounded-lg object-cover"
+        />
+      ) : null}
+      <Link to={detailPath} className="block space-y-3">
         {tags.length > 0 ? (
           <ul className="flex flex-wrap gap-2">
             {tags.map((tag) => (

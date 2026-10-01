@@ -7,27 +7,31 @@ interface ProfilePostGridProps {
   posts: MyPagePost[];
   handle: string;
   canManage: boolean;
-  hideLocked: boolean;
+  isOwn: boolean;
+  viewerSubscribed: boolean;
   onEdit: (postId: number) => void;
   onDelete: (postId: number) => void;
   detailPath?: (postId: number) => string;
 }
 
-function lockLabel(post: MyPagePost): string | null {
+function lockLabel(post: MyPagePost, isOwn: boolean, viewerSubscribed: boolean): string | null {
+  if (isOwn) {
+    return null;
+  }
   if (post.isSponsorOnly) {
     return "후원자들을 위한 사진";
   }
-  if (post.isSubscriberOnly) {
-    return "팬클럽 가입시 보여요.";
+  if (post.isSubscriberOnly && !viewerSubscribed) {
+    return "구독하면 볼 수 있어요.";
   }
   return null;
 }
 
-function PostFace({ post, locked }: { post: MyPagePost; locked: boolean }) {
-  if (locked) {
+function PostFace({ post, label }: { post: MyPagePost; label: string | null }) {
+  if (label !== null) {
     return (
       <div className="flex aspect-square items-center justify-center bg-neutral-100 px-4 text-center text-sm font-medium">
-        {lockLabel(post)}
+        {label}
       </div>
     );
   }
@@ -45,7 +49,8 @@ export function ProfilePostGrid({
   posts,
   handle,
   canManage,
-  hideLocked,
+  isOwn,
+  viewerSubscribed,
   onEdit,
   onDelete,
   detailPath = (postId) => `/posts/${postId}`,
@@ -57,15 +62,15 @@ export function ProfilePostGrid({
   return (
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {posts.map((post) => {
-        const locked = hideLocked && lockLabel(post) !== null;
+        const label = lockLabel(post, isOwn, viewerSubscribed);
         return (
           <li key={post.id} className="group relative">
             <Link
               to={detailPath(post.id)}
               className="block overflow-hidden rounded-xl border-2 border-neutral-900 bg-white"
             >
-              <PostFace post={post} locked={locked} />
-              {locked ? null : (
+              <PostFace post={post} label={label} />
+              {label !== null ? null : (
                 <div className="flex items-center justify-between gap-2 p-2 text-xs">
                   <span className="truncate">{toHandle(handle)}</span>
                   <span className="inline-flex items-center gap-2 text-neutral-500">

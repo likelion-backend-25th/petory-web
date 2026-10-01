@@ -108,7 +108,7 @@ export function PostComposerPage({ mode, board = "feed" }: PostComposerPageProps
     const payload = {
       content,
       hashtags: prefixHashtags(values.hashtags).trim(),
-      isSubscriberOnly: values.isSubscriberOnly ? 1 : 0,
+      isSubscriberOnly: writingQna || !values.isSubscriberOnly ? 0 : 1,
     };
     try {
       const withImages = async (): Promise<typeof payload & { imageUrls?: string[] }> => {
@@ -175,10 +175,12 @@ export function PostComposerPage({ mode, board = "feed" }: PostComposerPageProps
         {writingQna ? "궁금한 점을 남겨 주세요." : "나의 반려동물을 자랑해주세요...등등안내"}
       </p>
       <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <label className="flex items-center justify-end gap-2 text-sm">
-          구독자 전용 게시물
-          <input type="checkbox" className="accent-neutral-900" {...register("isSubscriberOnly")} />
-        </label>
+        {writingQna ? null : (
+          <label className="flex items-center justify-end gap-2 text-sm">
+            구독자 전용 게시물
+            <input type="checkbox" className="accent-neutral-900" {...register("isSubscriberOnly")} />
+          </label>
+        )}
         <input
           placeholder="큰 제목"
           className="h-10 w-full rounded-md border-2 border-neutral-900 px-3 text-sm outline-none"

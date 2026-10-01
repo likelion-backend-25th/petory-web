@@ -70,20 +70,12 @@ export function LoginPage() {
         <SketchButton type="submit" filled className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "로그인 중..." : "로그인"}
         </SketchButton>
-        <div className="grid grid-cols-2 gap-3">
-          <Link
-            to="/signup"
-            className="flex h-9 items-center justify-center rounded-md border-2 border-neutral-900 text-sm hover:bg-neutral-50"
-          >
-            회원가입 하기
-          </Link>
-          <Link
-            to="/forgot-password"
-            className="flex h-9 items-center justify-center rounded-md border-2 border-neutral-900 text-sm hover:bg-neutral-50"
-          >
-            비밀번호 찾기
-          </Link>
-        </div>
+        <Link
+          to="/signup"
+          className="flex h-9 items-center justify-center rounded-md border-2 border-neutral-900 text-sm hover:bg-neutral-50"
+        >
+          회원가입 하기
+        </Link>
       </form>
       <SocialAuthButtons
         onGoogle={() => startSocialLogin("google")}

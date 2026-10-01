@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { completePayment } from "@/api/payments";
+import { clearFanclubTarget, readFanclubTarget } from "@/lib/subscriberAccess";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import type { PaymentCompleteResult } from "@/types/payment";
 
 function resultText(result: PaymentCompleteResult): string {
@@ -30,6 +33,14 @@ export function PaymentReturnPage() {
     const verify = async (): Promise<void> => {
       try {
         const result = await completePayment({ paymentId });
+        const targetMemberId = readFanclubTarget();
+        if (result.status === "PAID" && targetMemberId !== null) {
+          const viewerId = useAuthStore.getState().user?.id ?? null;
+          if (viewerId !== null) {
+            useSubscriptionStore.getState().grant(viewerId, targetMemberId);
+          }
+        }
+        clearFanclubTarget();
         setIsError(result.status !== "PAID");
         setMessage(resultText(result));
       } catch (error: unknown) {

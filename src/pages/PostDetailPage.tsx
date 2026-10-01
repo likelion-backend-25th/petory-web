@@ -7,7 +7,9 @@ import { PostGallery } from "@/components/PostGallery";
 import type { PostBoard } from "@/hooks/usePostFeed";
 import { usePostDetail } from "@/hooks/usePostDetail";
 import { formatPostDate, isSubscriberOnly, parseHashtags, toHandle } from "@/lib/postFormat";
+import { canViewSubscriberPost } from "@/lib/subscriberAccess";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useSubscribedMemberIds } from "@/stores/useSubscriptionStore";
 
 export function PostDetailPage({ board = "feed" }: { board?: PostBoard }) {
   const { postId } = useParams();
@@ -15,6 +17,7 @@ export function PostDetailPage({ board = "feed" }: { board?: PostBoard }) {
   const { post, status, errorMessage } = usePostDetail(postId, board);
   const postBase = board === "qna" ? "/qna" : "/posts";
   const myId = useAuthStore((state) => state.user?.id ?? null);
+  const subscribedAuthorIds = useSubscribedMemberIds();
   const isLoggedIn = useAuthStore((state) => state.accessToken) !== null;
   const [likeState, setLikeState] = useState<{ postId: number; liked: boolean; count: number } | null>(null);
   const [likeBusy, setLikeBusy] = useState(false);
@@ -59,6 +62,13 @@ export function PostDetailPage({ board = "feed" }: { board?: PostBoard }) {
 
   const tags = parseHashtags(post.hashtags);
   const isOwner = myId !== null && myId > 0 && myId === post.memberId;
+  const locked = !canViewSubscriberPost(
+    isSubscriberOnly(post.isSubscriberOnly),
+    post.memberId,
+    myId,
+    subscribedAuthorIds,
+  );
+  const subscribePath = `/profile/${post.memberId}/subscribe`;
   const liked = likeState !== null && likeState.postId === post.id ? likeState.liked : false;
   const likeCount = likeState !== null && likeState.postId === post.id ? likeState.count : post.likeCount;
   const commentCount =
@@ -74,7 +84,21 @@ export function PostDetailPage({ board = "feed" }: { board?: PostBoard }) {
         <p className="text-xs text-neutral-500">{formatPostDate(post.createdAt)} 작성</p>
       </header>
 
-      <PostGallery imageUrls={post.imageUrls} alt={post.content} credit={post.authorName} />
+      {locked ? (
+        <div className="space-y-3 rounded-xl border-2 border-neutral-900 bg-neutral-50 px-6 py-10 text-center">
+          <p className="font-medium">구독자 전용 게시글입니다.</p>
+          <p className="text-sm text-neutral-600">구독하면 내용을 볼 수 있어요.</p>
+          <Link
+            to={isLoggedIn ? subscribePath : "/login"}
+            state={isLoggedIn ? undefined : { from: subscribePath }}
+            className="inline-flex h-9 items-center justify-center rounded-md border-2 border-neutral-900 bg-white px-4 text-sm font-medium hover:bg-neutral-50"
+          >
+            팬클럽 구독
+          </Link>
+        </div>
+      ) : (
+        <PostGallery imageUrls={post.imageUrls} alt={post.content} credit={post.authorName} />
+      )}
 
       <div className="flex items-center justify-between text-sm">
         <div className="flex gap-2">
@@ -113,36 +137,42 @@ export function PostDetailPage({ board = "feed" }: { board?: PostBoard }) {
       </div>
       {likeError ? <p className="text-xs text-red-600">{likeError}</p> : null}
 
-      {isSubscriberOnly(post.isSubscriberOnly) ? (
-        <p className="text-xs text-neutral-500">구독자 전용 게시글</p>
-      ) : null}
+      {locked ? null : (
+        <>
+          {isSubscriberOnly(post.isSubscriberOnly) ? (
+            <p className="text-xs text-neutral-500">구독자 전용 게시글</p>
+          ) : null}
 
-      <p className="whitespace-pre-wrap leading-relaxed">{post.content}</p>
-      <p className="text-xs text-neutral-400">{formatPostDate(post.createdAt)}</p>
+          <p className="whitespace-pre-wrap leading-relaxed">{post.content}</p>
+          <p className="text-xs text-neutral-400">{formatPostDate(post.createdAt)}</p>
 
-      {tags.length > 0 ? (
-        <ul className="flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <li key={tag} className="rounded-md border-2 border-neutral-900 px-2 py-1 text-xs">
-              {tag}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+          {tags.length > 0 ? (
+            <ul className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <li key={tag} className="rounded-md border-2 border-neutral-900 px-2 py-1 text-xs">
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
-      {isOwner ? (
-        <Link to={`${postBase}/${post.id}/edit`} className="inline-block text-sm underline">
-          수정하기
-        </Link>
-      ) : null}
+          {isOwner ? (
+            <Link to={`${postBase}/${post.id}/edit`} className="inline-block text-sm underline">
+              수정하기
+            </Link>
+          ) : null}
+        </>
+      )}
     </article>
 
+    {locked ? null : (
     <PostCommentPanel
       key={post.id}
       postId={post.id}
       comments={post.comments}
       onCountChange={(count) => setCountOverride({ postId: post.id, count })}
     />
+    )}
     </div>
   );
 }
