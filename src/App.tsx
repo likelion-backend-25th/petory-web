@@ -170,14 +170,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      {
-        path: "profile/:memberId",
-        element: (
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        ),
-      },
+      { path: "profile/:memberId", element: <ProfilePage /> },
       {
         path: "payments/history",
         element: (

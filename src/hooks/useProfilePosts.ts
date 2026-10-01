@@ -23,7 +23,7 @@ export function useProfilePosts(memberId: number | null, tab: ProfileTab, canRea
       return;
     }
     if (tab === "scrap" && !canReadScrap) {
-      setState({ posts: [], status: "error", errorMessage: "스크랩은 본인만 볼 수 있습니다." });
+      setState({ posts: [], status: "error", errorMessage: "북마크는 본인만 볼 수 있습니다." });
       return;
     }
 

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { toHandle } from "@/lib/postFormat";
+import { useAuthStore } from "@/stores/useAuthStore";
 import type { MemberProfile } from "@/types/profile";
 
 interface ProfileHeroProps {
@@ -52,6 +53,9 @@ function OwnActions({ memberId }: { memberId: number }) {
 }
 
 export function ProfileHero({ profile, isOwn, actions }: ProfileHeroProps) {
+  const isLoggedIn = useAuthStore((state) => state.accessToken) !== null;
+  const statClass = "min-w-20 rounded-md border-2 border-neutral-900 px-3 py-2";
+
   return (
     <section className="rounded-xl border-2 border-neutral-900 bg-white p-5">
       <p className="text-lg font-semibold">{toHandle(profile.nickname)}</p>
@@ -62,24 +66,32 @@ export function ProfileHero({ profile, isOwn, actions }: ProfileHeroProps) {
           <p className="mt-1 text-sm text-neutral-600">{profile.intro || "소개가 없습니다."}</p>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="min-w-20 rounded-md border-2 border-neutral-900 px-3 py-2">
+          <div className={statClass}>
             <p className="text-xs text-neutral-500">게시물</p>
             <p className="text-xl font-semibold">{profile.postsCount}</p>
           </div>
-          <Link
-            to={`/profile/${profile.id}/followers`}
-            className="min-w-20 rounded-md border-2 border-neutral-900 px-3 py-2 hover:bg-neutral-50"
-          >
-            <p className="text-xs text-neutral-500">팔로워</p>
-            <p className="text-xl font-semibold">{profile.followers}</p>
-          </Link>
-          <Link
-            to={`/profile/${profile.id}/followings`}
-            className="min-w-20 rounded-md border-2 border-neutral-900 px-3 py-2 hover:bg-neutral-50"
-          >
-            <p className="text-xs text-neutral-500">팔로잉</p>
-            <p className="text-xl font-semibold">{profile.followings}</p>
-          </Link>
+          {isLoggedIn ? (
+            <Link to={`/profile/${profile.id}/followers`} className={`${statClass} hover:bg-neutral-50`}>
+              <p className="text-xs text-neutral-500">팔로워</p>
+              <p className="text-xl font-semibold">{profile.followers}</p>
+            </Link>
+          ) : (
+            <div className={statClass}>
+              <p className="text-xs text-neutral-500">팔로워</p>
+              <p className="text-xl font-semibold">{profile.followers}</p>
+            </div>
+          )}
+          {isLoggedIn ? (
+            <Link to={`/profile/${profile.id}/followings`} className={`${statClass} hover:bg-neutral-50`}>
+              <p className="text-xs text-neutral-500">팔로잉</p>
+              <p className="text-xl font-semibold">{profile.followings}</p>
+            </Link>
+          ) : (
+            <div className={statClass}>
+              <p className="text-xs text-neutral-500">팔로잉</p>
+              <p className="text-xl font-semibold">{profile.followings}</p>
+            </div>
+          )}
         </div>
       </div>
       <div className="mt-5">

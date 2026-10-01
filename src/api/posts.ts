@@ -7,6 +7,7 @@ import type {
   PostDetail,
   PostListSlice,
   PostUpdateRequest,
+  BookmarkToggleResult,
   LikeToggleResult,
 } from "@/types/post";
 
@@ -110,6 +111,22 @@ export async function toggleLike(postId: number): Promise<LikeToggleResult> {
     throw new Error("좋아요 응답을 해석할 수 없습니다.");
   }
   return { liked: record.liked, likeCount: record.likeCount };
+}
+
+export async function toggleBookmark(postId: number): Promise<BookmarkToggleResult> {
+  const body: unknown = await apiClient<unknown>(`/posts/${postId}/bookmarks`, { method: "POST" });
+  if (typeof body !== "object" || body === null) {
+    throw new Error("북마크 응답을 해석할 수 없습니다.");
+  }
+  const record = body as Record<string, unknown>;
+  const bookmarked = record.bookmarked ?? record.isBookmarked;
+  if (typeof bookmarked !== "boolean") {
+    throw new Error("북마크 응답을 해석할 수 없습니다.");
+  }
+  return {
+    postId: typeof record.postId === "number" ? record.postId : postId,
+    bookmarked,
+  };
 }
 
 export function deletePost(postId: number): Promise<void> {

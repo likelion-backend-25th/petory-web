@@ -72,3 +72,8 @@ export interface LikeToggleResult {
   liked: boolean;
   likeCount: number;
 }
+
+export interface BookmarkToggleResult {
+  postId: number;
+  bookmarked: boolean;
+}

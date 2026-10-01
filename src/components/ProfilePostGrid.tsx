@@ -12,6 +12,7 @@ interface ProfilePostGridProps {
   onEdit: (postId: number) => void;
   onDelete: (postId: number) => void;
   detailPath?: (postId: number) => string;
+  emptyLabel?: string;
 }
 
 function lockLabel(post: MyPagePost, isOwn: boolean, viewerSubscribed: boolean): string | null {
@@ -54,9 +55,10 @@ export function ProfilePostGrid({
   onEdit,
   onDelete,
   detailPath = (postId) => `/posts/${postId}`,
+  emptyLabel = "게시글이 없습니다.",
 }: ProfilePostGridProps) {
   if (posts.length === 0) {
-    return <p className="py-10 text-center text-sm text-neutral-500">게시글이 없습니다.</p>;
+    return <p className="py-10 text-center text-sm text-neutral-500">{emptyLabel}</p>;
   }
 
   return (

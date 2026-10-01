@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Eye, Heart, MessageCircle } from "lucide-react";
 import { toggleLike } from "@/api/posts";
+import { BookmarkButton } from "@/components/BookmarkButton";
 import { PostCommentPanel } from "@/components/PostCommentPanel";
 import { PostGallery } from "@/components/PostGallery";
 import type { PostBoard } from "@/hooks/usePostFeed";
@@ -134,6 +135,7 @@ export function PostDetailPage({ board = "feed" }: { board?: PostBoard }) {
             <Eye className="size-4" aria-hidden />
             조회 {displayViewCount(post.id, post.viewCount)}
           </span>
+          <BookmarkButton postId={post.id} from={`${postBase}/${post.id}`} />
         </div>
       </div>
       {likeError ? <p className="text-xs text-red-600">{likeError}</p> : null}

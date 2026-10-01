@@ -15,7 +15,7 @@ import { useIsSubscribedTo } from "@/stores/useSubscriptionStore";
 const TABS: { id: ProfileTab; label: string }[] = [
   { id: "my", label: "MY" },
   { id: "qna", label: "Q&A" },
-  { id: "scrap", label: "스크랩" },
+  { id: "scrap", label: "북마크" },
 ];
 
 export function ProfilePage() {
@@ -130,6 +130,7 @@ export function ProfilePage() {
           detailPath={(postId) => (tab === "qna" ? `/qna/${postId}` : `/posts/${postId}`)}
           onEdit={(postId) => void navigate(tab === "qna" ? `/qna/${postId}/edit` : `/posts/${postId}/edit`)}
           onDelete={setDeleteId}
+          emptyLabel={tab === "scrap" ? "북마크한 게시글이 없습니다." : "게시글이 없습니다."}
         />
       ) : null}
       {deleteError ? <p className="text-sm text-red-600">{deleteError}</p> : null}

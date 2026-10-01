@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { Eye, Heart, MessageCircle } from "lucide-react";
+import { BookmarkButton } from "@/components/BookmarkButton";
 import { PostImageCarousel } from "@/components/PostGallery";
 import { formatPostDate, isSubscriberOnly, parseHashtags } from "@/lib/postFormat";
 import { displayViewCount } from "@/lib/viewCounts";
@@ -40,8 +41,8 @@ export function PostCard({ post, detailPath = `/posts/${post.id}` }: PostCardPro
           imageClassName="aspect-video w-full rounded-lg object-cover"
         />
       ) : null}
-      <Link to={detailPath} className="block space-y-3">
-        {tags.length > 0 ? (
+      {tags.length > 0 ? (
+        <Link to={detailPath} className="block">
           <ul className="flex flex-wrap gap-2">
             {tags.map((tag) => (
               <li key={tag} className="text-sm text-neutral-500">
@@ -49,8 +50,10 @@ export function PostCard({ post, detailPath = `/posts/${post.id}` }: PostCardPro
               </li>
             ))}
           </ul>
-        ) : null}
-        <footer className="flex items-center gap-4 text-sm text-neutral-500">
+        </Link>
+      ) : null}
+      <footer className="flex items-center justify-between gap-3 text-sm text-neutral-500">
+        <Link to={detailPath} className="flex items-center gap-4">
           <span className="inline-flex items-center gap-1">
             <Heart className="size-4" aria-hidden />
             {post.likeCount}
@@ -64,8 +67,9 @@ export function PostCard({ post, detailPath = `/posts/${post.id}` }: PostCardPro
             <span className="sr-only">조회수</span>
             {displayViewCount(post.id, post.viewCount)}
           </span>
-        </footer>
-      </Link>
+        </Link>
+        <BookmarkButton postId={post.id} from={detailPath} />
+      </footer>
     </article>
   );
 }

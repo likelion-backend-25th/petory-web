@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Plus } from "lucide-react";
 import { followMember, unfollowMember } from "@/api/follow";
 import { SnackSupportModal } from "@/components/SnackSupportModal";
 import { cn } from "@/lib/cn";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 interface OtherProfileActionsProps {
   memberId: number;
@@ -21,6 +22,8 @@ export function OtherProfileActions({
   initialFollowing,
   onFollowChange,
 }: OtherProfileActionsProps) {
+  const navigate = useNavigate();
+  const isLoggedIn = useAuthStore((state) => state.accessToken) !== null;
   const [following, setFollowing] = useState(initialFollowing);
   const [followBusy, setFollowBusy] = useState(false);
   const [followError, setFollowError] = useState<string | null>(null);
@@ -30,7 +33,15 @@ export function OtherProfileActions({
     setFollowing(initialFollowing);
   }, [initialFollowing, memberId]);
 
+  const requireLogin = (): void => {
+    void navigate("/login", { state: { from: `/profile/${memberId}` } });
+  };
+
   const toggleFollow = async (): Promise<void> => {
+    if (!isLoggedIn) {
+      requireLogin();
+      return;
+    }
     setFollowBusy(true);
     setFollowError(null);
     const next = !following;
@@ -52,12 +63,28 @@ export function OtherProfileActions({
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap justify-end gap-2">
-        <button type="button" className={actionClass} onClick={() => setSnackOpen(true)}>
+        <button
+          type="button"
+          className={actionClass}
+          onClick={() => {
+            if (!isLoggedIn) {
+              requireLogin();
+              return;
+            }
+            setSnackOpen(true);
+          }}
+        >
           간식 쏘기
         </button>
-        <Link to={`/profile/${memberId}/subscribe`} className={actionClass}>
-          팬클럽 구독
-        </Link>
+        {isLoggedIn ? (
+          <Link to={`/profile/${memberId}/subscribe`} className={actionClass}>
+            팬클럽 구독
+          </Link>
+        ) : (
+          <button type="button" className={actionClass} onClick={requireLogin}>
+            팬클럽 구독
+          </button>
+        )}
         <button
           type="button"
           className={cn(actionClass, following && "bg-neutral-900 text-white hover:bg-neutral-800")}
