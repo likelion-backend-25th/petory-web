@@ -4,18 +4,13 @@ import { FeedBanner } from "@/components/FeedBanner";
 import { FeedTopPets } from "@/components/FeedTopPets";
 import { PostCard } from "@/components/PostCard";
 import { usePostFeed } from "@/hooks/usePostFeed";
+import { normalizeHashtag } from "@/lib/postFormat";
 
 export function FeedPage() {
   const [searchParams] = useSearchParams();
-  const query = searchParams.get("q")?.trim().toLowerCase() ?? "";
-  const { posts, hasNext, status, errorMessage, isLoadingMore, loadMore } = usePostFeed();
+  const hashtag = normalizeHashtag(searchParams.get("q") ?? "");
+  const { posts, hasNext, status, errorMessage, isLoadingMore, loadMore } = usePostFeed(hashtag);
   const sentinelRef = useRef<HTMLDivElement>(null);
-
-  const visible = query
-    ? posts.filter((post) =>
-        `${post.content} ${post.nickname} ${post.hashtags}`.toLowerCase().includes(query),
-      )
-    : posts;
 
   useEffect(() => {
     const node = sentinelRef.current;
@@ -36,21 +31,27 @@ export function FeedPage() {
 
   return (
     <section className="space-y-6">
-      <FeedBanner featured={posts[0] ?? null} />
-      <FeedTopPets posts={posts} />
-
-      {query ? <p className="text-sm text-neutral-500">검색: {query}</p> : null}
+      {hashtag === "" ? (
+        <>
+          <FeedBanner featured={posts[0] ?? null} />
+          <FeedTopPets posts={posts} />
+        </>
+      ) : (
+        <p className="text-sm text-neutral-500">#{hashtag}</p>
+      )}
       {status === "loading" ? <p className="text-neutral-500">피드를 불러오는 중...</p> : null}
       {status === "error" && posts.length === 0 ? (
         <p className="text-sm text-red-600">{errorMessage}</p>
       ) : null}
-      {status === "success" && visible.length === 0 ? (
-        <p className="text-neutral-500">아직 게시글이 없습니다.</p>
+      {status === "success" && posts.length === 0 ? (
+        <p className="text-neutral-500">
+          {hashtag === "" ? "아직 게시글이 없습니다." : `#${hashtag} 게시글이 없습니다.`}
+        </p>
       ) : null}
 
-      {visible.length > 0 ? (
+      {posts.length > 0 ? (
         <ul className="space-y-4">
-          {visible.map((post) => (
+          {posts.map((post) => (
             <li key={post.id}>
               <PostCard post={post} />
             </li>

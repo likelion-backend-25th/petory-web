@@ -5,8 +5,10 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import type { LoginRequest, SignUpRequest } from "@/types/auth";
 import type { User } from "@/types/user";
 
-export async function signIn(payload: LoginRequest): Promise<void> {
-  const tokens = await login(payload);
+export async function establishSession(tokens: {
+  accessToken: string;
+  refreshToken: string;
+}): Promise<void> {
   const claims = readUserFromAccessToken(tokens.accessToken);
   let user: User = {
     id: claims.id ?? 0,
@@ -31,6 +33,11 @@ export async function signIn(payload: LoginRequest): Promise<void> {
       // 프로필 조회 실패해도 토큰으로 결제 API는 호출할 수 있다.
     }
   }
+}
+
+export async function signIn(payload: LoginRequest): Promise<void> {
+  const tokens = await login(payload);
+  await establishSession(tokens);
 }
 
 export async function signUpAndSignIn(payload: SignUpRequest): Promise<void> {

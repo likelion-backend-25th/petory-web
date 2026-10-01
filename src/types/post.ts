@@ -48,6 +48,7 @@ export interface PostCreateRequest {
   bgmUrl?: string;
   isSubscriberOnly: number;
   hashtags: string;
+  imageUrls?: string[];
 }
 
 export interface PostCreateResponse {

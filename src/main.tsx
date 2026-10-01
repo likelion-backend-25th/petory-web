@@ -1,7 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { applySocialLogin } from "@/lib/socialLogin";
 import { App } from "./App";
 import "./index.css";
+
+applySocialLogin();
 
 const rootElement = document.getElementById("root");
 

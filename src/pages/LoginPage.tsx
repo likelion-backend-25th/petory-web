@@ -9,6 +9,7 @@ import { BrandLogo } from "@/components/auth/BrandLogo";
 import { SketchButton } from "@/components/auth/SketchButton";
 import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
 import { signIn } from "@/lib/session";
+import { startSocialLogin } from "@/lib/socialLogin";
 
 const loginSchema = z.object({
   email: z.email("이메일 형식이 아닙니다."),
@@ -20,8 +21,6 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 interface LoginLocationState {
   from?: string;
 }
-
-const SOCIAL_UNAVAILABLE = "소셜 로그인은 아직 연결되지 않았습니다.";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -87,8 +86,8 @@ export function LoginPage() {
         </div>
       </form>
       <SocialAuthButtons
-        onGoogle={() => setSubmitError(SOCIAL_UNAVAILABLE)}
-        onKakao={() => setSubmitError(SOCIAL_UNAVAILABLE)}
+        onGoogle={() => startSocialLogin("google")}
+        onKakao={() => startSocialLogin("kakao")}
       />
     </AuthCard>
   );

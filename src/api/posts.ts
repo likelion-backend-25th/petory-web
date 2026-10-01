@@ -27,6 +27,20 @@ export function getPosts(
   });
 }
 
+export function searchPosts(
+  params: GetPostsParams & { hashtag: string },
+  signal?: AbortSignal,
+): Promise<PostListSlice> {
+  return apiClient<PostListSlice>("/posts/search", {
+    signal,
+    query: {
+      hashtag: params.hashtag,
+      lastPostId: params.lastPostId,
+      size: params.size ?? 10,
+    },
+  });
+}
+
 function readComments(value: unknown): PostComment[] {
   if (!Array.isArray(value)) {
     return [];

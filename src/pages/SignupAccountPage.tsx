@@ -7,6 +7,7 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { AuthField } from "@/components/auth/AuthField";
 import { SketchButton } from "@/components/auth/SketchButton";
 import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
+import { startSocialLogin } from "@/lib/socialLogin";
 import type { SignupAccountDraft } from "@/types/auth";
 
 const accountSchema = z
@@ -22,12 +23,9 @@ const accountSchema = z
 
 type AccountFormValues = z.infer<typeof accountSchema>;
 
-const SOCIAL_UNAVAILABLE = "소셜 가입은 아직 연결되지 않았습니다.";
-
 export function SignupAccountPage() {
   const navigate = useNavigate();
   const [emailCheck, setEmailCheck] = useState<string | null>(null);
-  const [socialError, setSocialError] = useState<string | null>(null);
 
   const {
     register,
@@ -78,14 +76,13 @@ export function SignupAccountPage() {
           error={errors.passwordConfirm?.message}
           {...register("passwordConfirm")}
         />
-        {socialError ? <p className="text-sm text-red-600">{socialError}</p> : null}
         <SketchButton type="submit" filled className="w-full">
           다음
         </SketchButton>
       </form>
       <SocialAuthButtons
-        onGoogle={() => setSocialError(SOCIAL_UNAVAILABLE)}
-        onKakao={() => setSocialError(SOCIAL_UNAVAILABLE)}
+        onGoogle={() => startSocialLogin("google")}
+        onKakao={() => startSocialLogin("kakao")}
       />
     </AuthCard>
   );

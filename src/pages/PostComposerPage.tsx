@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate, useParams } from "react-router";
 import { z } from "zod";
+import { isUploadableImage, uploadImage } from "@/api/files";
 import { createPost, getPost, updatePost } from "@/api/posts";
+import { PostImagePicker } from "@/components/PostImagePicker";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const composerSchema = z.object({
@@ -24,7 +26,10 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
   const { postId } = useParams();
   const myId = useAuthStore((state) => state.user?.id ?? null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const previewsRef = useRef(previews);
+  previewsRef.current = previews;
 
   const {
     register,
@@ -63,11 +68,28 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
     return () => controller.abort();
   }, [mode, myId, postId, reset]);
 
-  const onFiles = (files: FileList | null): void => {
-    if (files === null) {
+  const onFiles = (selected: FileList | null): void => {
+    if (selected === null || selected.length === 0 || mode === "edit") {
       return;
     }
-    setPreviews(Array.from(files).map((file) => URL.createObjectURL(file)));
+    for (const url of previewsRef.current) {
+      URL.revokeObjectURL(url);
+    }
+    const next = Array.from(selected);
+    const rejected = next.filter((file) => !isUploadableImage(file));
+    setSubmitError(rejected.length > 0 ? "JPG, PNG, WEBP, GIF 이미지만 올릴 수 있습니다." : null);
+    const accepted = next.filter((file) => isUploadableImage(file));
+    setFiles(accepted);
+    setPreviews(accepted.map((file) => URL.createObjectURL(file)));
+  };
+
+  const removeFile = (index: number): void => {
+    const url = previewsRef.current[index];
+    if (url !== undefined) {
+      URL.revokeObjectURL(url);
+    }
+    setFiles((current) => current.filter((_, itemIndex) => itemIndex !== index));
+    setPreviews((current) => current.filter((_, itemIndex) => itemIndex !== index));
   };
 
   const onSubmit = async (values: ComposerValues): Promise<void> => {
@@ -84,7 +106,13 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
         void navigate(`/posts/${postId}`, { replace: true });
         return;
       }
-      const created = await createPost(payload);
+      const imageUrls: string[] = [];
+      for (const file of files) {
+        imageUrls.push(await uploadImage(file));
+      }
+      const created = await createPost(
+        imageUrls.length > 0 ? { ...payload, imageUrls } : payload,
+      );
       void navigate(`/posts/${created.id}`, { replace: true });
     } catch (error: unknown) {
       setSubmitError(error instanceof Error ? error.message : "알 수 없는 오류");
@@ -117,21 +145,13 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
           {...register("content")}
         />
         {errors.content ? <p className="text-xs text-red-600">{errors.content.message}</p> : null}
-        <div className="rounded-md border-2 border-dashed border-neutral-900 p-4">
-          <p className="mb-2 text-sm">귀여운 나와 반려동물 사진 등록</p>
-          <input type="file" accept="image/*" multiple onChange={(event) => onFiles(event.target.files)} />
-          {previews.length > 0 ? (
-            <ul className="mt-3 grid grid-cols-3 gap-2">
-              {previews.map((src) => (
-                <li key={src}>
-                  <img src={src} alt="" className="aspect-square w-full rounded object-cover" />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-2 text-xs text-neutral-400">사진은 미리보기만 됩니다. 업로드 API는 아직 없습니다.</p>
-          )}
-        </div>
+        <PostImagePicker
+          mode={mode}
+          previews={previews}
+          disabled={isSubmitting}
+          onFiles={onFiles}
+          onRemove={removeFile}
+        />
         {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
         <div className="flex justify-end gap-3">
           <Link to="/" className="flex h-10 items-center rounded-md border-2 border-neutral-900 px-4 text-sm">
@@ -142,7 +162,7 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
             disabled={isSubmitting}
             className="h-10 rounded-md border-2 border-neutral-900 bg-neutral-900 px-4 text-sm text-white disabled:opacity-50"
           >
-            {mode === "edit" ? "수정하기" : "등록하기"}
+            {isSubmitting ? "등록 중..." : mode === "edit" ? "수정하기" : "등록하기"}
           </button>
         </div>
       </form>
