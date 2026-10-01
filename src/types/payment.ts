@@ -22,11 +22,35 @@ export interface PaymentCompleteRequest {
   paymentId: string;
 }
 
+export type PaymentStatus = "READY" | "PAID" | "FAILED" | "CANCELLED";
+
 export interface PaymentCompleteResult {
   paymentId: string;
-  status: string;
-  paidAmount: number;
+  status: PaymentStatus;
+  paidAmount: number | null;
   message: string;
+}
+
+export interface PaymentHistoryResponse {
+  paymentId: string;
+  targetMemberId: number;
+  orderName: string;
+  currency: string;
+  totalAmount: number;
+  paidAmount: number | null;
+  status: PaymentStatus;
+  createdAt: string;
+  paidAt: string | null;
+  cancelledAt: string | null;
+}
+
+export function isPaymentStatus(value: unknown): value is PaymentStatus {
+  return (
+    value === "READY" ||
+    value === "PAID" ||
+    value === "FAILED" ||
+    value === "CANCELLED"
+  );
 }
 
 export function isPaymentCompleteResult(body: unknown): body is PaymentCompleteResult {
@@ -36,6 +60,6 @@ export function isPaymentCompleteResult(body: unknown): body is PaymentCompleteR
     "paymentId" in body &&
     typeof body.paymentId === "string" &&
     "status" in body &&
-    typeof body.status === "string"
+    isPaymentStatus(body.status)
   );
 }

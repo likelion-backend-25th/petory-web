@@ -15,6 +15,14 @@ export function ClubPage() {
   return <ComingSoonPage title="P클럽 찾기" />;
 }
 
+export function QnaPage() {
+  return <ComingSoonPage title="QnA" />;
+}
+
+export function ChatPage() {
+  return <ComingSoonPage title="채팅" />;
+}
+
 export function PaymentHistoryPage() {
   return <ComingSoonPage title="결제 내역" />;
 }

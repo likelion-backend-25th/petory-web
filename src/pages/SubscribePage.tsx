@@ -11,7 +11,7 @@ function won(amount: number): string {
 }
 
 function resultText(result: PaymentCompleteResult): string {
-  if (result.status === "PAID") {
+  if (result.status === "PAID" && result.paidAmount !== null) {
     return `${won(result.paidAmount)}원 팬클럽 구독이 완료되었습니다.`;
   }
   if (result.status === "READY") {

@@ -23,7 +23,7 @@ interface SnackSupportFormProps {
 }
 
 function resultText(result: PaymentCompleteResult): string {
-  if (result.status === "PAID") {
+  if (result.status === "PAID" && result.paidAmount !== null) {
     const amount = new Intl.NumberFormat("ko-KR").format(result.paidAmount);
     return `${amount}원 후원 완료!`;
   }
