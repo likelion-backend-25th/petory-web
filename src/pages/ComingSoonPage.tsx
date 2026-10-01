@@ -26,7 +26,3 @@ export function ChatPage() {
 export function PaymentHistoryPage() {
   return <ComingSoonPage title="결제 내역" />;
 }
-
-export function SubscriptionPage() {
-  return <ComingSoonPage title="구독 관리" />;
-}

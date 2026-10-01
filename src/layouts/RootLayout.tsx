@@ -4,10 +4,12 @@ import { AppFooter } from "@/components/AppFooter";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Header } from "@/components/Header";
 import { MobileNav } from "@/components/MobileNav";
+import { useSyncSubscriptions } from "@/hooks/useSyncSubscriptions";
 import { socialCallback } from "@/lib/socialLogin";
 
 export function RootLayout() {
   const [socialError, setSocialError] = useState(socialCallback.kind === "error");
+  useSyncSubscriptions();
 
   return (
     <div className="min-h-screen bg-neutral-50">

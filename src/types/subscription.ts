@@ -12,3 +12,14 @@ export interface SubscriptionCreatePayload {
   planId: number;
   billingKey: string;
 }
+
+export interface MySubscription {
+  id: number;
+  memberId: number;
+  targetMemberId: number;
+  targetMember: string;
+  planName: string;
+  startedAt: string;
+  nextBillingAt: string | null;
+  agreement: boolean;
+}
