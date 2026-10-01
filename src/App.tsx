@@ -3,7 +3,7 @@ import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { RootLayout } from "@/layouts/RootLayout";
-import { ChatPage, ClubPage, PaymentHistoryPage, QnaPage, RankingPage, SubscriptionPage } from "@/pages/ComingSoonPage";
+import { ClubPage, PaymentHistoryPage, SubscriptionPage } from "@/pages/ComingSoonPage";
 import { AdminPage } from "@/pages/AdminPage";
 import { SubscribePage } from "@/pages/SubscribePage";
 import { FeedPage } from "@/pages/FeedPage";
@@ -17,6 +17,8 @@ import { MissingPetListPage } from "@/pages/MissingPetListPage";
 import { MyPageRedirect } from "@/pages/MyPageRedirect";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { PaymentReturnPage } from "@/pages/PaymentReturnPage";
+import { QnaPage } from "@/pages/QnaPage";
+import { RankingPage } from "@/pages/RankingPage";
 import { PostComposerPage } from "@/pages/PostComposerPage";
 import { PostDetailPage } from "@/pages/PostDetailPage";
 import { ProfileEditPage } from "@/pages/ProfileEditPage";
@@ -44,8 +46,30 @@ const router = createBrowserRouter([
       { path: "feed", element: <Navigate to="/" replace /> },
       { path: "ranking", element: <RankingPage /> },
       { path: "club", element: <ClubPage /> },
-      { path: "qna", element: <QnaPage /> },
-      { path: "chat", element: <ChatPage /> },
+      {
+        path: "qna",
+        element: (
+          <ProtectedRoute>
+            <QnaPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "qna/:postId/edit",
+        element: (
+          <ProtectedRoute>
+            <PostComposerPage mode="edit" board="qna" />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "qna/:postId",
+        element: (
+          <ProtectedRoute>
+            <PostDetailPage board="qna" />
+          </ProtectedRoute>
+        ),
+      },
       {
         path: "admin",
         element: (

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getQnaPosts, searchQnaPosts } from "@/api/qna";
 import { getPosts, searchPosts } from "@/api/posts";
 import type { PostListItem, PostListSlice } from "@/types/post";
+
+export type PostBoard = "feed" | "qna";
 
 export const FEED_PAGE_SIZE = 3;
 
@@ -35,30 +38,39 @@ function mergePosts(current: PostListItem[], incoming: PostListItem[]): PostList
   return [...current, ...incoming.filter((post) => !seen.has(post.id))];
 }
 
-function loadPostPage(hashtag: string, lastPostId: number | undefined, signal?: AbortSignal) {
-  if (hashtag !== "") {
-    return searchPosts({ hashtag, lastPostId, size: FEED_PAGE_SIZE }, signal);
+function loadPostPage(
+  board: PostBoard,
+  hashtag: string,
+  lastPostId: number | undefined,
+  signal?: AbortSignal,
+) {
+  const params = { lastPostId, size: FEED_PAGE_SIZE };
+  if (board === "qna") {
+    return hashtag !== "" ? searchQnaPosts({ ...params, hashtag }, signal) : getQnaPosts(params, signal);
   }
-  return getPosts({ lastPostId, size: FEED_PAGE_SIZE }, signal);
+  return hashtag !== "" ? searchPosts({ ...params, hashtag }, signal) : getPosts(params, signal);
 }
 
-export function usePostFeed(hashtag = "") {
+export function usePostFeed(hashtag = "", board: PostBoard = "feed") {
   const [state, setState] = useState<FeedState>(initialState);
   const stateRef = useRef(state);
   const loadingMoreRef = useRef(false);
   const hashtagRef = useRef(hashtag);
+  const boardRef = useRef(board);
   stateRef.current = state;
   hashtagRef.current = hashtag;
+  boardRef.current = board;
 
   useEffect(() => {
     const controller = new AbortController();
     const tag = hashtag;
+    const currentBoard = board;
     loadingMoreRef.current = false;
     setState(initialState);
 
     const loadFirstPage = async (): Promise<void> => {
       try {
-        const page = await loadPostPage(tag, undefined, controller.signal);
+        const page = await loadPostPage(currentBoard, tag, undefined, controller.signal);
         if (controller.signal.aborted) {
           return;
         }
@@ -85,11 +97,12 @@ export function usePostFeed(hashtag = "") {
 
     void loadFirstPage();
     return () => controller.abort();
-  }, [hashtag]);
+  }, [board, hashtag]);
 
   const loadMore = useCallback(async (): Promise<void> => {
     const current = stateRef.current;
     const tag = hashtagRef.current;
+    const currentBoard = boardRef.current;
     if (
       !current.hasNext ||
       current.lastPostId === null ||
@@ -103,8 +116,8 @@ export function usePostFeed(hashtag = "") {
     setState((prev) => ({ ...prev, isLoadingMore: true, errorMessage: null }));
 
     try {
-      const page = await loadPostPage(tag, current.lastPostId);
-      if (hashtagRef.current !== tag) {
+      const page = await loadPostPage(currentBoard, tag, current.lastPostId);
+      if (hashtagRef.current !== tag || boardRef.current !== currentBoard) {
         return;
       }
       setState((prev) => ({
@@ -115,7 +128,7 @@ export function usePostFeed(hashtag = "") {
         isLoadingMore: false,
       }));
     } catch (error: unknown) {
-      if (hashtagRef.current !== tag) {
+      if (hashtagRef.current !== tag || boardRef.current !== currentBoard) {
         return;
       }
       const message = error instanceof Error ? error.message : "알 수 없는 오류";

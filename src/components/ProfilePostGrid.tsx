@@ -10,6 +10,7 @@ interface ProfilePostGridProps {
   hideLocked: boolean;
   onEdit: (postId: number) => void;
   onDelete: (postId: number) => void;
+  detailPath?: (postId: number) => string;
 }
 
 function lockLabel(post: MyPagePost): string | null {
@@ -47,6 +48,7 @@ export function ProfilePostGrid({
   hideLocked,
   onEdit,
   onDelete,
+  detailPath = (postId) => `/posts/${postId}`,
 }: ProfilePostGridProps) {
   if (posts.length === 0) {
     return <p className="py-10 text-center text-sm text-neutral-500">게시글이 없습니다.</p>;
@@ -59,7 +61,7 @@ export function ProfilePostGrid({
         return (
           <li key={post.id} className="group relative">
             <Link
-              to={`/posts/${post.id}`}
+              to={detailPath(post.id)}
               className="block overflow-hidden rounded-xl border-2 border-neutral-900 bg-white"
             >
               <PostFace post={post} locked={locked} />

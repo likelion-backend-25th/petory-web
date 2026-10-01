@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { getQna, getQnaPosts } from "@/api/qna";
 import { getPost, getPosts } from "@/api/posts";
+import type { PostBoard } from "@/hooks/usePostFeed";
 import type { PostComment, PostDetail, PostListItem } from "@/types/post";
 
 export interface PostDetailView extends PostDetail {
@@ -40,7 +42,7 @@ function neighborsOf(postId: number, list: PostListItem[]): { prevId: number | n
   };
 }
 
-export function usePostDetail(postIdParam: string | undefined) {
+export function usePostDetail(postIdParam: string | undefined, board: PostBoard = "feed") {
   const postId = parsePostId(postIdParam);
   const [state, setState] = useState<PostDetailState>(initialState);
 
@@ -56,8 +58,8 @@ export function usePostDetail(postIdParam: string | undefined) {
     const load = async (): Promise<void> => {
       try {
         const [detail, slice] = await Promise.all([
-          getPost(postId, controller.signal),
-          getPosts({ size: 30 }, controller.signal),
+          board === "qna" ? getQna(postId, controller.signal) : getPost(postId, controller.signal),
+          board === "qna" ? getQnaPosts({ size: 30 }, controller.signal) : getPosts({ size: 30 }, controller.signal),
         ]);
         if (controller.signal.aborted) {
           return;
@@ -70,6 +72,7 @@ export function usePostDetail(postIdParam: string | undefined) {
             imageUrls: listed?.imageUrls ?? [],
             likeCount: listed?.likeCount ?? 0,
             commentCount: listed?.commentCount ?? comments.length,
+            viewCount: typeof detail.viewCount === "number" ? detail.viewCount : (listed?.viewCount ?? 0),
             neighbors: neighborsOf(postId, slice.content),
           },
           status: "success",
@@ -86,7 +89,7 @@ export function usePostDetail(postIdParam: string | undefined) {
 
     void load();
     return () => controller.abort();
-  }, [postId]);
+  }, [board, postId]);
 
   return state;
 }

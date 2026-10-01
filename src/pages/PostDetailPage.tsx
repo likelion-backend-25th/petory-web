@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { Heart, MessageCircle } from "lucide-react";
+import { Eye, Heart, MessageCircle } from "lucide-react";
 import { toggleLike } from "@/api/posts";
 import { PostCommentPanel } from "@/components/PostCommentPanel";
 import { PostGallery } from "@/components/PostGallery";
+import type { PostBoard } from "@/hooks/usePostFeed";
 import { usePostDetail } from "@/hooks/usePostDetail";
 import { formatPostDate, isSubscriberOnly, parseHashtags, toHandle } from "@/lib/postFormat";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-export function PostDetailPage() {
+export function PostDetailPage({ board = "feed" }: { board?: PostBoard }) {
   const { postId } = useParams();
   const navigate = useNavigate();
-  const { post, status, errorMessage } = usePostDetail(postId);
+  const { post, status, errorMessage } = usePostDetail(postId, board);
+  const postBase = board === "qna" ? "/qna" : "/posts";
   const myId = useAuthStore((state) => state.user?.id ?? null);
   const isLoggedIn = useAuthStore((state) => state.accessToken) !== null;
   const [likeState, setLikeState] = useState<{ postId: number; liked: boolean; count: number } | null>(null);
@@ -24,7 +26,7 @@ export function PostDetailPage() {
       return;
     }
     if (!isLoggedIn) {
-      void navigate("/login", { state: { from: `/posts/${post.id}` } });
+      void navigate("/login", { state: { from: `${postBase}/${post.id}` } });
       return;
     }
     setLikeBusy(true);
@@ -63,6 +65,7 @@ export function PostDetailPage() {
     countOverride !== null && countOverride.postId === post.id ? countOverride.count : post.comments.length;
 
   return (
+    <div className="space-y-6">
     <article className="space-y-4 rounded-xl border-2 border-neutral-900 bg-white p-5">
       <header className="flex items-start justify-between gap-3">
         <Link to={`/profile/${post.memberId}`} className="font-medium hover:underline">
@@ -76,12 +79,12 @@ export function PostDetailPage() {
       <div className="flex items-center justify-between text-sm">
         <div className="flex gap-2">
           {post.neighbors.prevId !== null ? (
-            <Link to={`/posts/${post.neighbors.prevId}`} className="rounded-md border-2 border-neutral-900 px-2 py-1">
+            <Link to={`${postBase}/${post.neighbors.prevId}`} className="rounded-md border-2 border-neutral-900 px-2 py-1">
               이전게시글
             </Link>
           ) : null}
           {post.neighbors.nextId !== null ? (
-            <Link to={`/posts/${post.neighbors.nextId}`} className="rounded-md border-2 border-neutral-900 px-2 py-1">
+            <Link to={`${postBase}/${post.neighbors.nextId}`} className="rounded-md border-2 border-neutral-900 px-2 py-1">
               다음게시글
             </Link>
           ) : null}
@@ -101,6 +104,10 @@ export function PostDetailPage() {
           <span className="inline-flex items-center gap-1">
             <MessageCircle className="size-4" />
             {commentCount}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Eye className="size-4" aria-hidden />
+            조회 {post.viewCount}
           </span>
         </div>
       </div>
@@ -124,17 +131,18 @@ export function PostDetailPage() {
       ) : null}
 
       {isOwner ? (
-        <Link to={`/posts/${post.id}/edit`} className="inline-block text-sm underline">
+        <Link to={`${postBase}/${post.id}/edit`} className="inline-block text-sm underline">
           수정하기
         </Link>
       ) : null}
-
-      <PostCommentPanel
-        key={post.id}
-        postId={post.id}
-        comments={post.comments}
-        onCountChange={(count) => setCountOverride({ postId: post.id, count })}
-      />
     </article>
+
+    <PostCommentPanel
+      key={post.id}
+      postId={post.id}
+      comments={post.comments}
+      onCountChange={(count) => setCountOverride({ postId: post.id, count })}
+    />
+    </div>
   );
 }

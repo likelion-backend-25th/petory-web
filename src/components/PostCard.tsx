@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Heart, MessageCircle } from "lucide-react";
+import { Eye, Heart, MessageCircle } from "lucide-react";
 import { formatPostDate, isSubscriberOnly, parseHashtags } from "@/lib/postFormat";
 import type { PostListItem } from "@/types/post";
 
 interface PostCardProps {
   post: PostListItem;
+  detailPath?: string;
 }
 
 function MediaFallback() {
@@ -31,7 +32,7 @@ function PostImage({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, detailPath = `/posts/${post.id}` }: PostCardProps) {
   const tags = parseHashtags(post.hashtags);
 
   return (
@@ -49,7 +50,7 @@ export function PostCard({ post }: PostCardProps) {
           </span>
         ) : null}
       </header>
-      <Link to={`/posts/${post.id}`} className="block space-y-3">
+      <Link to={detailPath} className="block space-y-3">
         <p className="whitespace-pre-wrap text-neutral-800">{post.content}</p>
         {post.imageUrls.length > 0 ? (
           <div className="grid gap-2">
@@ -75,6 +76,11 @@ export function PostCard({ post }: PostCardProps) {
           <span className="inline-flex items-center gap-1">
             <MessageCircle className="size-4" aria-hidden />
             {post.commentCount}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Eye className="size-4" aria-hidden />
+            <span className="sr-only">조회수</span>
+            {post.viewCount ?? 0}
           </span>
         </footer>
       </Link>

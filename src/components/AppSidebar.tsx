@@ -1,15 +1,5 @@
 import { NavLink, useLocation } from "react-router";
-import {
-  Home,
-  Flame,
-  Search,
-  HelpCircle,
-  MapPinned,
-  MessageCircle,
-  PenSquare,
-  Shield,
-  UserRound,
-} from "lucide-react";
+import { Home, Flame, HelpCircle, MapPinned, PenSquare, Shield, UserRound } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -17,10 +7,8 @@ import { useAuthStore } from "@/stores/useAuthStore";
 const navItems = [
   { to: "/", label: "홈", icon: Home, end: true },
   { to: "/ranking", label: "인기/핫 랭킹", icon: Flame, end: false },
-  { to: "/club", label: "P클럽 찾기", icon: Search, end: false },
   { to: "/missing-pets", label: "실종동물 신고", icon: MapPinned, end: false },
   { to: "/qna", label: "QnA", icon: HelpCircle, end: false },
-  { to: "/chat", label: "채팅", icon: MessageCircle, end: false },
 ] as const;
 
 export function AppSidebar() {

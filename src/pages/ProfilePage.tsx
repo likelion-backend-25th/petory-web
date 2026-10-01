@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
+import { deleteQna } from "@/api/qna";
 import { deletePost } from "@/api/posts";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 import { OtherProfileActions } from "@/components/OtherProfileActions";
@@ -64,7 +65,11 @@ export function ProfilePage() {
     setDeleteBusy(true);
     setDeleteError(null);
     try {
-      await deletePost(deleteId);
+      if (tab === "qna") {
+        await deleteQna(deleteId);
+      } else {
+        await deletePost(deleteId);
+      }
       list.removePost(deleteId);
       setDeleteId(null);
     } catch (error: unknown) {
@@ -117,9 +122,10 @@ export function ProfilePage() {
         <ProfilePostGrid
           posts={list.posts}
           handle={profile.nickname}
-          canManage={isOwn && tab === "my"}
+          canManage={isOwn && tab !== "scrap"}
           hideLocked={!isOwn}
-          onEdit={(postId) => void navigate(`/posts/${postId}/edit`)}
+          detailPath={(postId) => (tab === "qna" ? `/qna/${postId}` : `/posts/${postId}`)}
+          onEdit={(postId) => void navigate(tab === "qna" ? `/qna/${postId}/edit` : `/posts/${postId}/edit`)}
           onDelete={setDeleteId}
         />
       ) : null}

@@ -8,6 +8,7 @@ interface AuthFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
   actionLabel?: string;
+  actionDisabled?: boolean;
   onAction?: () => void;
 }
 
@@ -16,6 +17,7 @@ export function AuthField({
   label,
   error,
   actionLabel,
+  actionDisabled,
   onAction,
   className,
   ...props
@@ -33,7 +35,8 @@ export function AuthField({
           <button
             type="button"
             onClick={onAction}
-            className="h-8 shrink-0 rounded-md border-2 border-neutral-900 px-2.5 text-xs whitespace-nowrap hover:bg-neutral-50"
+            disabled={actionDisabled}
+            className="h-8 shrink-0 rounded-md border-2 border-neutral-900 px-2.5 text-xs whitespace-nowrap hover:bg-neutral-50 disabled:opacity-50"
           >
             {actionLabel}
           </button>

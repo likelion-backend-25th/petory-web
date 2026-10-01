@@ -56,7 +56,11 @@ function readComments(value: unknown): PostComment[] {
 
 export async function getPost(postId: number, signal?: AbortSignal): Promise<PostDetail> {
   const raw = await apiClient<PostDetail & { comments?: unknown }>(`/posts/${postId}`, { signal });
-  return { ...raw, comments: readComments(raw.comments) };
+  return {
+    ...raw,
+    comments: readComments(raw.comments),
+    viewCount: typeof raw.viewCount === "number" ? raw.viewCount : 0,
+  };
 }
 
 export function createPost(payload: PostCreateRequest): Promise<PostCreateResponse> {

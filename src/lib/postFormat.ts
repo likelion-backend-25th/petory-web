@@ -17,6 +17,19 @@ export function normalizeHashtag(value: string): string {
   return token.replace(/^#+/, "");
 }
 
+export function prefixHashtags(value: string): string {
+  const endsWithSpace = /\s$/.test(value);
+  const tags = value
+    .split(/\s+/)
+    .map((tag) => tag.replace(/^#+/, ""))
+    .filter((tag) => tag !== "");
+  if (tags.length === 0) {
+    return "";
+  }
+  const text = tags.map((tag) => `#${tag}`).join(" ");
+  return endsWithSpace ? `${text} ` : text;
+}
+
 export function parseHashtags(hashtags: string): string[] {
   return hashtags
     .split(/\s+/)

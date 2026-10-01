@@ -33,7 +33,7 @@ export function PostCommentItem({
   };
 
   return (
-    <li className="flex items-start justify-between gap-3 text-sm">
+    <li className="flex items-start justify-between gap-3 px-3 py-3 text-sm">
       <div className="min-w-0 flex-1">
         <p>
           <span className="font-medium">{comment.commenterNickname}</span>
