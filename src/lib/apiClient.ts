@@ -4,16 +4,20 @@ import { ApiError, readApiErrorMessage } from "@/types/api";
 import type { TokenResponse } from "@/types/auth";
 import type { User } from "@/types/user";
 
-function getApiPrefix(): string {
+function getApiBaseUrl(): string {
   const baseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
   // HTTPS 사이트에서 HTTP API를 직접 치면 mixed content로 막히므로 상대경로를 쓴다.
   if (
     baseUrl &&
     !(globalThis.location?.protocol === "https:" && baseUrl.startsWith("http://"))
   ) {
-    return `${baseUrl.replace(/\/$/, "")}/api/v1`;
+    return baseUrl.replace(/\/$/, "");
   }
-  return "/api/v1";
+  return "";
+}
+
+function getApiPrefix(): string {
+  return `${getApiBaseUrl()}/api/v1`;
 }
 
 type QueryValue = string | number | boolean | null | undefined;
@@ -24,7 +28,10 @@ interface ApiClientOptions extends Omit<RequestInit, "body"> {
 }
 
 function buildUrl(path: string, query?: Record<string, QueryValue>): string {
-  const url = `${getApiPrefix()}${path}`;
+  // 일부 컨트롤러는 /api/v1이 아닌 /api 바로 아래에 있다.
+  const url = path.startsWith("/api/")
+    ? `${getApiBaseUrl()}${path}`
+    : `${getApiPrefix()}${path}`;
   if (!query) {
     return url;
   }

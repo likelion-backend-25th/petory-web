@@ -10,6 +10,10 @@ import { FeedPage } from "@/pages/FeedPage";
 import { FollowListPage } from "@/pages/FollowListPage";
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { LoginPage } from "@/pages/LoginPage";
+import { MissingPetCreatePage } from "@/pages/MissingPetCreatePage";
+import { MissingPetDetailPage } from "@/pages/MissingPetDetailPage";
+import { MissingPetEditPage } from "@/pages/MissingPetEditPage";
+import { MissingPetListPage } from "@/pages/MissingPetListPage";
 import { MyPageRedirect } from "@/pages/MyPageRedirect";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { PaymentReturnPage } from "@/pages/PaymentReturnPage";
@@ -109,6 +113,38 @@ const router = createBrowserRouter([
         ),
       },
       { path: "posts/:postId", element: <PostDetailPage /> },
+      {
+        path: "missing-pets",
+        element: (
+          <ProtectedRoute>
+            <MissingPetListPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "missing-pets/new",
+        element: (
+          <ProtectedRoute>
+            <MissingPetCreatePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "missing-pets/:missingPetId/edit",
+        element: (
+          <ProtectedRoute>
+            <MissingPetEditPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "missing-pets/:missingPetId",
+        element: (
+          <ProtectedRoute>
+            <MissingPetDetailPage />
+          </ProtectedRoute>
+        ),
+      },
       {
         path: "profile/:memberId",
         element: (
