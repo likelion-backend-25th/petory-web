@@ -8,7 +8,7 @@ import type {
   PresignUploadResponse,
 } from "@/types/missingPet";
 
-const MISSING_PETS_PATH = "/api/missing-pets";
+const MISSING_PETS_PATH = "/missing-pets";
 
 export interface GetMissingPetsParams {
   cursor?: number;
