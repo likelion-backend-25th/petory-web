@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { z } from "zod";
 import { isEmailTaken } from "@/api/auth";
 import { AuthCard } from "@/components/auth/AuthCard";
@@ -30,9 +30,32 @@ interface FieldCheck {
   message: string;
 }
 
+interface SignupReturnState {
+  email?: string;
+  password?: string;
+  emailError?: string;
+}
+
+function readReturnState(value: unknown): SignupReturnState {
+  if (typeof value !== "object" || value === null) {
+    return {};
+  }
+  const record = value as Record<string, unknown>;
+  return {
+    email: typeof record.email === "string" ? record.email : undefined,
+    password: typeof record.password === "string" ? record.password : undefined,
+    emailError: typeof record.emailError === "string" ? record.emailError : undefined,
+  };
+}
+
 export function SignupAccountPage() {
   const navigate = useNavigate();
-  const [emailCheck, setEmailCheck] = useState<FieldCheck | null>(null);
+  const returned = readReturnState(useLocation().state);
+  const [emailCheck, setEmailCheck] = useState<FieldCheck | null>(
+    returned.emailError && returned.email
+      ? { value: returned.email.trim(), ok: false, message: returned.emailError }
+      : null,
+  );
   const [checkingEmail, setCheckingEmail] = useState(false);
 
   const {
@@ -43,7 +66,11 @@ export function SignupAccountPage() {
     formState: { errors },
   } = useForm<AccountFormValues>({
     resolver: zodResolver(accountSchema),
-    defaultValues: { email: "", password: "", passwordConfirm: "" },
+    defaultValues: {
+      email: returned.email ?? "",
+      password: returned.password ?? "",
+      passwordConfirm: returned.password ?? "",
+    },
   });
 
   const emailValue = watch("email").trim();
@@ -126,7 +153,7 @@ export function SignupAccountPage() {
           error={errors.passwordConfirm?.message}
           {...register("passwordConfirm")}
         />
-        <SketchButton type="submit" filled className="w-full">
+        <SketchButton type="submit" filled className="w-full" disabled={shownEmailCheck?.ok !== true}>
           다음
         </SketchButton>
       </form>

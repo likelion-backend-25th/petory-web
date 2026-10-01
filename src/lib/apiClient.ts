@@ -25,6 +25,7 @@ type QueryValue = string | number | boolean | null | undefined;
 interface ApiClientOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
   query?: Record<string, QueryValue>;
+  skipAuth?: boolean;
 }
 
 function buildUrl(path: string, query?: Record<string, QueryValue>): string {
@@ -122,9 +123,9 @@ function refreshAccessTokenOnce(): Promise<boolean> {
 }
 
 async function request<T>(path: string, options: ApiClientOptions, retried: boolean): Promise<T> {
-  const { body, headers, query, ...rest } = options;
+  const { body, headers, query, skipAuth = false, ...rest } = options;
 
-  if (!retried && !isSessionPath(path)) {
+  if (!skipAuth && !retried && !isSessionPath(path)) {
     const currentToken = useAuthStore.getState().accessToken;
     if (currentToken && isAccessTokenStale(currentToken)) {
       const refreshed = await refreshAccessTokenOnce();
@@ -134,7 +135,7 @@ async function request<T>(path: string, options: ApiClientOptions, retried: bool
     }
   }
 
-  const accessToken = useAuthStore.getState().accessToken;
+  const accessToken = skipAuth ? null : useAuthStore.getState().accessToken;
 
   try {
     const response = await fetch(buildUrl(path, query), {
@@ -149,7 +150,7 @@ async function request<T>(path: string, options: ApiClientOptions, retried: bool
 
     if (!response.ok) {
       // 로그인 실패(401)는 기존 세션을 지우지 않는다. 만료된 토큰은 한 번 갱신 후 재시도한다.
-      if (response.status === 401 && !isSessionPath(path)) {
+      if (response.status === 401 && !skipAuth && !isSessionPath(path)) {
         if (!retried) {
           const refreshed = await refreshAccessTokenOnce();
           if (refreshed) {

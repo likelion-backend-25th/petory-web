@@ -8,6 +8,7 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { AuthField, AuthSelect, AuthTextarea } from "@/components/auth/AuthField";
 import { SketchButton } from "@/components/auth/SketchButton";
 import { signUpAndSignIn } from "@/lib/session";
+import { ApiError } from "@/types/api";
 import type { SignupAccountDraft } from "@/types/auth";
 
 const SPECIES_OPTIONS = ["개", "고양이", "기타"] as const;
@@ -128,6 +129,18 @@ export function SignupPetPage() {
       void navigate("/", { replace: true });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "알 수 없는 오류";
+      if (error instanceof ApiError && error.status === 409 && message.includes("이메일")) {
+        void navigate("/signup", {
+          replace: true,
+          state: { email: draft.email, password: draft.password, emailError: message },
+        });
+        return;
+      }
+      if (error instanceof ApiError && error.status === 409) {
+        setNicknameCheck({ value: nickname, ok: false, message });
+        setSubmitError(null);
+        return;
+      }
       setSubmitError(message);
     }
   };
@@ -197,7 +210,12 @@ export function SignupPetPage() {
         </label>
         {errors.isAgreed ? <p className="text-xs text-red-600">{errors.isAgreed.message}</p> : null}
         {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
-        <SketchButton type="submit" filled className="w-full" disabled={isSubmitting}>
+        <SketchButton
+          type="submit"
+          filled
+          className="w-full"
+          disabled={isSubmitting || shownNicknameCheck?.ok !== true}
+        >
           {isSubmitting ? "가입 중..." : "펫토리 시작하기"}
         </SketchButton>
       </form>

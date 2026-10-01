@@ -136,8 +136,8 @@ export function PostComposerPage({ mode, board = "feed" }: PostComposerPageProps
         void navigate(`/posts/${postId}`, { replace: true });
         return;
       }
-      const created = await createPost(await withImages());
-      void navigate(`/posts/${created.id}`, { replace: true });
+      await createPost(await withImages());
+      void navigate("/", { replace: true });
     } catch (error: unknown) {
       setSubmitError(error instanceof Error ? error.message : "알 수 없는 오류");
     }

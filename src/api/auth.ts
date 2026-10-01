@@ -38,7 +38,7 @@ function readTaken(body: unknown): boolean | null {
 
 async function isValueTaken(path: string, query: Record<string, string>): Promise<boolean> {
   try {
-    const body = await apiClient<unknown>(path, { query });
+    const body = await apiClient<unknown>(path, { query, skipAuth: true });
     const taken = readTaken(body);
     if (taken === null) {
       throw new Error("중복 확인 응답을 해석하지 못했습니다.");
