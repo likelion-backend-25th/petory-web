@@ -4,6 +4,7 @@ import { deleteQna } from "@/api/qna";
 import { deletePost } from "@/api/posts";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 import { OtherProfileActions } from "@/components/OtherProfileActions";
+import { PlanSettingsBox } from "@/components/PlanSettingsBox";
 import { ProfileHero } from "@/components/ProfileHero";
 import { ProfilePostGrid } from "@/components/ProfilePostGrid";
 import { useProfile } from "@/hooks/useProfile";
@@ -30,6 +31,7 @@ export function ProfilePage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [plansOpen, setPlansOpen] = useState(false);
   const list = useProfilePosts(profile?.id ?? null, isOwn ? tab : "my", isOwn);
 
   useEffect(() => {
@@ -40,6 +42,7 @@ export function ProfilePage() {
 
   useEffect(() => {
     setTab("my");
+    setPlansOpen(false);
   }, [memberId]);
 
   if (status === "loading") {
@@ -86,6 +89,8 @@ export function ProfilePage() {
       <ProfileHero
         profile={shown}
         isOwn={isOwn}
+        plansOpen={plansOpen}
+        onTogglePlans={isOwn ? () => setPlansOpen((open) => !open) : undefined}
         actions={
           isOwn ? undefined : (
             <OtherProfileActions
@@ -99,6 +104,8 @@ export function ProfilePage() {
           )
         }
       />
+
+      {isOwn && plansOpen ? <PlanSettingsBox memberId={profile.id} /> : null}
 
       {isOwn ? (
         <div className="grid grid-cols-3 overflow-hidden rounded-xl border-2 border-neutral-900">

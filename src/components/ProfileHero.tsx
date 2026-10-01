@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import { cn } from "@/lib/cn";
 import { toHandle } from "@/lib/postFormat";
 import { useAuthStore } from "@/stores/useAuthStore";
 import type { MemberProfile } from "@/types/profile";
@@ -8,6 +9,8 @@ interface ProfileHeroProps {
   profile: MemberProfile;
   isOwn: boolean;
   actions?: ReactNode;
+  plansOpen?: boolean;
+  onTogglePlans?: () => void;
 }
 
 function Avatar({ nickname, profileImage }: { nickname: string; profileImage: string | null }) {
@@ -27,38 +30,40 @@ function Avatar({ nickname, profileImage }: { nickname: string; profileImage: st
   );
 }
 
-function OwnActions({ memberId }: { memberId: number }) {
+function OwnActions({
+  memberId,
+  plansOpen,
+  onTogglePlans,
+}: {
+  memberId: number;
+  plansOpen: boolean;
+  onTogglePlans?: () => void;
+}) {
+  const actionClass = "rounded-md border-2 border-neutral-900 px-6 py-2 text-sm font-medium hover:bg-neutral-50";
   return (
     <>
-      <Link
-        to={`/profile/${memberId}/edit`}
-        className="rounded-md border-2 border-neutral-900 px-6 py-2 text-sm font-medium hover:bg-neutral-50"
-      >
+      <Link to={`/profile/${memberId}/edit`} className={actionClass}>
         프로필 편집
       </Link>
-      <Link
-        to="/payments/history"
-        className="rounded-md border-2 border-neutral-900 px-6 py-2 text-sm font-medium hover:bg-neutral-50"
-      >
+      <Link to="/payments/history" className={actionClass}>
         결제 내역
       </Link>
-      <Link
-        to={`/profile/${memberId}/plans`}
-        className="rounded-md border-2 border-neutral-900 px-6 py-2 text-sm font-medium hover:bg-neutral-50"
+      <button
+        type="button"
+        className={cn(actionClass, plansOpen && "bg-neutral-900 text-white hover:bg-neutral-800")}
+        aria-expanded={plansOpen}
+        onClick={onTogglePlans}
       >
         구독플랜 설정
-      </Link>
-      <Link
-        to="/subscriptions"
-        className="rounded-md border-2 border-neutral-900 px-6 py-2 text-sm font-medium hover:bg-neutral-50"
-      >
+      </button>
+      <Link to="/subscriptions" className={actionClass}>
         구독 관리
       </Link>
     </>
   );
 }
 
-export function ProfileHero({ profile, isOwn, actions }: ProfileHeroProps) {
+export function ProfileHero({ profile, isOwn, actions, plansOpen = false, onTogglePlans }: ProfileHeroProps) {
   const isLoggedIn = useAuthStore((state) => state.accessToken) !== null;
   const statClass = "min-w-20 rounded-md border-2 border-neutral-900 px-3 py-2";
 
@@ -104,7 +109,7 @@ export function ProfileHero({ profile, isOwn, actions }: ProfileHeroProps) {
         {actions ??
           (isOwn ? (
             <div className="flex flex-wrap justify-end gap-2">
-              <OwnActions memberId={profile.id} />
+              <OwnActions memberId={profile.id} plansOpen={plansOpen} onTogglePlans={onTogglePlans} />
             </div>
           ) : null)}
       </div>

@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_KAKAO_MAP_KEY?: string;
   readonly VITE_PORTONE_STORE_ID?: string;
   readonly VITE_PORTONE_CHANNEL_KEY?: string;
+  readonly VITE_PORTONE_BILLING_CHANNEL_KEY?: string;
 }
 
 interface ImportMeta {

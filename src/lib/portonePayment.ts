@@ -111,11 +111,11 @@ function grantFanclub(targetMemberId: number): void {
   }
 }
 
-function readPortOneConfig(): { storeId: string; channelKey: string } {
+function readBillingPortOneConfig(): { storeId: string; channelKey: string } {
   const storeId = import.meta.env.VITE_PORTONE_STORE_ID?.trim();
-  const channelKey = import.meta.env.VITE_PORTONE_CHANNEL_KEY?.trim();
+  const channelKey = import.meta.env.VITE_PORTONE_BILLING_CHANNEL_KEY?.trim();
   if (!storeId || !channelKey) {
-    throw new Error("PortOne 상점 설정이 없습니다. 환경 변수를 확인해 주세요.");
+    throw new Error("PortOne 정기결제 채널 설정이 없습니다. 환경 변수를 확인해 주세요.");
   }
   return { storeId, channelKey };
 }
@@ -123,7 +123,7 @@ function readPortOneConfig(): { storeId: string; channelKey: string } {
 export async function startFanclubSubscription(
   pending: PendingFanclubSubscription,
 ): Promise<PendingFanclubSubscription | null> {
-  const { storeId, channelKey } = readPortOneConfig();
+  const { storeId, channelKey } = readBillingPortOneConfig();
   const user = useAuthStore.getState().user;
   stagePendingSubscription(pending);
 
