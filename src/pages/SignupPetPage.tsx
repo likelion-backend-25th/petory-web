@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import { z } from "zod";
+import { isNicknameTaken } from "@/api/auth";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { AuthField, AuthSelect, AuthTextarea } from "@/components/auth/AuthField";
 import { SketchButton } from "@/components/auth/SketchButton";
@@ -24,6 +25,12 @@ const petSchema = z.object({
 
 type PetFormValues = z.infer<typeof petSchema>;
 
+interface FieldCheck {
+  value: string;
+  ok: boolean;
+  message: string;
+}
+
 function isSignupAccountDraft(value: unknown): value is SignupAccountDraft {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -37,13 +44,15 @@ export function SignupPetPage() {
   const location = useLocation();
   const draft = isSignupAccountDraft(location.state) ? location.state : null;
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [nicknameCheck, setNicknameCheck] = useState<string | null>(null);
+  const [nicknameCheck, setNicknameCheck] = useState<FieldCheck | null>(null);
+  const [checkingNickname, setCheckingNickname] = useState(false);
 
   const {
     register,
     control,
     handleSubmit,
     getValues,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<PetFormValues>({
     resolver: zodResolver(petSchema),
@@ -58,16 +67,51 @@ export function SignupPetPage() {
     },
   });
 
+  const nicknameValue = watch("nickname").trim();
+  const shownNicknameCheck = nicknameCheck?.value === nicknameValue ? nicknameCheck : null;
+
   if (draft === null) {
     return <Navigate to="/signup" replace />;
   }
 
-  const checkNickname = (): void => {
+  const checkNickname = async (): Promise<void> => {
     const nickname = getValues("nickname").trim();
-    setNicknameCheck(nickname.length > 0 ? "사용 가능한 이름입니다." : "이름을 입력해 주세요.");
+    if (nickname.length === 0) {
+      setNicknameCheck({ value: nickname, ok: false, message: "이름을 입력해 주세요." });
+      return;
+    }
+
+    setCheckingNickname(true);
+    try {
+      const taken = await isNicknameTaken(nickname);
+      if (getValues("nickname").trim() !== nickname) {
+        return;
+      }
+      setNicknameCheck({
+        value: nickname,
+        ok: !taken,
+        message: taken ? "이미 사용 중인 이름입니다." : "사용 가능한 이름입니다.",
+      });
+    } catch (error: unknown) {
+      if (getValues("nickname").trim() !== nickname) {
+        return;
+      }
+      const message = error instanceof Error ? error.message : "중복 확인에 실패했습니다.";
+      setNicknameCheck({ value: nickname, ok: false, message });
+    } finally {
+      setCheckingNickname(false);
+    }
   };
 
   const onSubmit = async (values: PetFormValues): Promise<void> => {
+    const nickname = values.nickname.trim();
+    if (nicknameCheck?.ok !== true || nicknameCheck.value !== nickname) {
+      if (nicknameCheck?.value !== nickname) {
+        setNicknameCheck({ value: nickname, ok: false, message: "이름 중복체크를 해 주세요." });
+      }
+      return;
+    }
+
     setSubmitError(null);
     try {
       await signUpAndSignIn({
@@ -95,12 +139,19 @@ export function SignupPetPage() {
           <AuthField
             label="이름(닉네임)"
             autoComplete="nickname"
-            actionLabel="중복체크"
-            onAction={checkNickname}
+            actionLabel={checkingNickname ? "확인 중" : "중복체크"}
+            actionDisabled={checkingNickname}
+            onAction={() => {
+              void checkNickname();
+            }}
             error={errors.nickname?.message}
             {...register("nickname")}
           />
-          {nicknameCheck ? <p className="text-xs text-neutral-500">{nicknameCheck}</p> : null}
+          {shownNicknameCheck ? (
+            <p className={`text-xs ${shownNicknameCheck.ok ? "text-green-700" : "text-red-600"}`}>
+              {shownNicknameCheck.message}
+            </p>
+          ) : null}
         </div>
         <AuthSelect label="종" error={errors.species?.message} {...register("species")}>
           <option value="">선택</option>

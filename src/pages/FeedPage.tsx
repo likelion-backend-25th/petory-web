@@ -4,12 +4,23 @@ import { FeedBanner } from "@/components/FeedBanner";
 import { FeedTopPets } from "@/components/FeedTopPets";
 import { PostCard } from "@/components/PostCard";
 import { usePostFeed } from "@/hooks/usePostFeed";
-import { normalizeHashtag } from "@/lib/postFormat";
+import { isSubscriberOnly, normalizeHashtag } from "@/lib/postFormat";
+import { canViewSubscriberPost } from "@/lib/subscriberAccess";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { useSubscribedMemberIds } from "@/stores/useSubscriptionStore";
 
 export function FeedPage() {
   const [searchParams] = useSearchParams();
   const hashtag = normalizeHashtag(searchParams.get("q") ?? "");
+  const myId = useAuthStore((state) => state.user?.id ?? null);
+  const subscribedAuthorIds = useSubscribedMemberIds();
   const { posts, hasNext, status, errorMessage, isLoadingMore, loadMore } = usePostFeed(hashtag);
+  const visiblePosts = posts.filter((post) => {
+    if (hashtag === "" && post.content.trim() === "첫 게시글이에요. 잘 부탁드려요!") {
+      return false;
+    }
+    return canViewSubscriberPost(isSubscriberOnly(post.isSubscriberOnly), post.memberId, myId, subscribedAuthorIds);
+  });
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,8 +44,8 @@ export function FeedPage() {
     <section className="space-y-6">
       {hashtag === "" ? (
         <>
-          <FeedBanner featured={posts[0] ?? null} />
-          <FeedTopPets posts={posts} />
+          <FeedBanner />
+          <FeedTopPets />
         </>
       ) : (
         <p className="text-sm text-neutral-500">#{hashtag}</p>
@@ -43,15 +54,15 @@ export function FeedPage() {
       {status === "error" && posts.length === 0 ? (
         <p className="text-sm text-red-600">{errorMessage}</p>
       ) : null}
-      {status === "success" && posts.length === 0 ? (
+      {status === "success" && visiblePosts.length === 0 ? (
         <p className="text-neutral-500">
           {hashtag === "" ? "아직 게시글이 없습니다." : `#${hashtag} 게시글이 없습니다.`}
         </p>
       ) : null}
 
-      {posts.length > 0 ? (
+      {visiblePosts.length > 0 ? (
         <ul className="space-y-4">
-          {posts.map((post) => (
+          {visiblePosts.map((post) => (
             <li key={post.id}>
               <PostCard post={post} />
             </li>
@@ -61,10 +72,10 @@ export function FeedPage() {
 
       <div ref={sentinelRef} className="h-8" />
       {isLoadingMore ? <p className="text-center text-sm text-neutral-500">더 불러오는 중...</p> : null}
-      {status === "success" && !hasNext && posts.length > 0 ? (
+      {status === "success" && !hasNext && visiblePosts.length > 0 ? (
         <p className="text-center text-sm text-neutral-400">마지막 게시글입니다.</p>
       ) : null}
-      {errorMessage && posts.length > 0 ? (
+      {errorMessage && visiblePosts.length > 0 ? (
         <p className="text-center text-sm text-red-600">{errorMessage}</p>
       ) : null}
     </section>

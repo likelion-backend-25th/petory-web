@@ -1,37 +1,16 @@
-import { useState } from "react";
 import { Link } from "react-router";
-import { Heart, MessageCircle } from "lucide-react";
+import { Eye, Heart, MessageCircle } from "lucide-react";
+import { PostImageCarousel } from "@/components/PostGallery";
 import { formatPostDate, isSubscriberOnly, parseHashtags } from "@/lib/postFormat";
+import { displayViewCount } from "@/lib/viewCounts";
 import type { PostListItem } from "@/types/post";
 
 interface PostCardProps {
   post: PostListItem;
+  detailPath?: string;
 }
 
-function MediaFallback() {
-  return (
-    <div className="flex aspect-video items-center justify-center rounded-lg bg-neutral-100 text-sm text-neutral-400">
-      이미지를 불러올 수 없습니다
-    </div>
-  );
-}
-
-function PostImage({ src, alt }: { src: string; alt: string }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) {
-    return <MediaFallback />;
-  }
-  return (
-    <img
-      src={src}
-      alt={alt}
-      className="aspect-video w-full rounded-lg object-cover"
-      onError={() => setFailed(true)}
-    />
-  );
-}
-
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, detailPath = `/posts/${post.id}` }: PostCardProps) {
   const tags = parseHashtags(post.hashtags);
 
   return (
@@ -49,15 +28,19 @@ export function PostCard({ post }: PostCardProps) {
           </span>
         ) : null}
       </header>
-      <Link to={`/posts/${post.id}`} className="block space-y-3">
+      <Link to={detailPath} className="block">
         <p className="whitespace-pre-wrap text-neutral-800">{post.content}</p>
-        {post.imageUrls.length > 0 ? (
-          <div className="grid gap-2">
-            {post.imageUrls.map((url) => (
-              <PostImage key={url} src={url} alt={post.content} />
-            ))}
-          </div>
-        ) : null}
+      </Link>
+      {post.imageUrls.length > 0 ? (
+        <PostImageCarousel
+          key={post.id}
+          imageUrls={post.imageUrls}
+          alt={post.content}
+          href={detailPath}
+          imageClassName="aspect-video w-full rounded-lg object-cover"
+        />
+      ) : null}
+      <Link to={detailPath} className="block space-y-3">
         {tags.length > 0 ? (
           <ul className="flex flex-wrap gap-2">
             {tags.map((tag) => (
@@ -75,6 +58,11 @@ export function PostCard({ post }: PostCardProps) {
           <span className="inline-flex items-center gap-1">
             <MessageCircle className="size-4" aria-hidden />
             {post.commentCount}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Eye className="size-4" aria-hidden />
+            <span className="sr-only">조회수</span>
+            {displayViewCount(post.id, post.viewCount)}
           </span>
         </footer>
       </Link>

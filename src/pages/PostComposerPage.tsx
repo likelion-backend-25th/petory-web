@@ -1,11 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type CompositionEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { z } from "zod";
 import { isUploadableImage, uploadImage } from "@/api/files";
+import { createQna, getQna, updateQna } from "@/api/qna";
 import { createPost, getPost, updatePost } from "@/api/posts";
 import { PostImagePicker } from "@/components/PostImagePicker";
+import type { PostBoard } from "@/hooks/usePostFeed";
+import { cn } from "@/lib/cn";
+import { prefixHashtags } from "@/lib/postFormat";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const composerSchema = z.object({
@@ -19,22 +23,28 @@ type ComposerValues = z.infer<typeof composerSchema>;
 
 interface PostComposerPageProps {
   mode: "create" | "edit";
+  board?: PostBoard;
 }
 
-export function PostComposerPage({ mode }: PostComposerPageProps) {
+export function PostComposerPage({ mode, board = "feed" }: PostComposerPageProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { postId } = useParams();
+  const writingQna = mode === "edit" ? board === "qna" : searchParams.get("board") === "qna";
   const myId = useAuthStore((state) => state.user?.id ?? null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const previewsRef = useRef(previews);
   previewsRef.current = previews;
+  const hashtagComposing = useRef(false);
+  const hashtagInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ComposerValues>({
     resolver: zodResolver(composerSchema),
@@ -49,7 +59,7 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
     const controller = new AbortController();
     const load = async (): Promise<void> => {
       try {
-        const post = await getPost(id, controller.signal);
+        const post = await (writingQna ? getQna(id, controller.signal) : getPost(id, controller.signal));
         if (myId !== null && myId !== post.memberId) {
           setSubmitError("내 게시글만 수정할 수 있습니다.");
           return;
@@ -57,7 +67,7 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
         reset({
           title: "",
           content: post.content,
-          hashtags: post.hashtags,
+          hashtags: prefixHashtags(post.hashtags).trim(),
           isSubscriberOnly: post.isSubscriberOnly === 1,
         });
       } catch (error: unknown) {
@@ -66,7 +76,7 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
     };
     void load();
     return () => controller.abort();
-  }, [mode, myId, postId, reset]);
+  }, [mode, myId, postId, reset, writingQna]);
 
   const onFiles = (selected: FileList | null): void => {
     if (selected === null || selected.length === 0 || mode === "edit") {
@@ -97,37 +107,80 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
     const content = values.title.trim() === "" ? values.content : `${values.title.trim()}\n\n${values.content}`;
     const payload = {
       content,
-      hashtags: values.hashtags.trim(),
-      isSubscriberOnly: values.isSubscriberOnly ? 1 : 0,
+      hashtags: prefixHashtags(values.hashtags).trim(),
+      isSubscriberOnly: writingQna || !values.isSubscriberOnly ? 0 : 1,
     };
     try {
+      const withImages = async (): Promise<typeof payload & { imageUrls?: string[] }> => {
+        if (mode === "edit") {
+          return payload;
+        }
+        const imageUrls: string[] = [];
+        for (const file of files) {
+          imageUrls.push(await uploadImage(file));
+        }
+        return imageUrls.length > 0 ? { ...payload, imageUrls } : payload;
+      };
+      if (writingQna) {
+        if (mode === "edit" && postId !== undefined) {
+          await updateQna(Number(postId), payload);
+          void navigate(`/qna/${postId}`, { replace: true });
+          return;
+        }
+        const created = await createQna(await withImages());
+        void navigate(`/qna/${created.id}`, { replace: true });
+        return;
+      }
       if (mode === "edit" && postId !== undefined) {
         await updatePost(Number(postId), payload);
         void navigate(`/posts/${postId}`, { replace: true });
         return;
       }
-      const imageUrls: string[] = [];
-      for (const file of files) {
-        imageUrls.push(await uploadImage(file));
-      }
-      const created = await createPost(
-        imageUrls.length > 0 ? { ...payload, imageUrls } : payload,
-      );
+      const created = await createPost(await withImages());
       void navigate(`/posts/${created.id}`, { replace: true });
     } catch (error: unknown) {
       setSubmitError(error instanceof Error ? error.message : "알 수 없는 오류");
     }
   };
 
+  const hashtagField = register("hashtags");
+
   return (
+    <section className="space-y-4">
+      {mode === "create" ? (
+        <div className="grid grid-cols-2 overflow-hidden rounded-xl border-2 border-neutral-900">
+          <Link
+            to="/posts/new"
+            className={cn(
+              "flex h-12 items-center justify-center text-sm font-semibold",
+              writingQna ? "bg-white hover:bg-neutral-50" : "bg-neutral-900 text-white",
+            )}
+          >
+            메인 피드 작성
+          </Link>
+          <Link
+            to="/posts/new?board=qna"
+            className={cn(
+              "flex h-12 items-center justify-center border-l-2 border-neutral-900 text-sm font-semibold",
+              writingQna ? "bg-neutral-900 text-white" : "bg-white hover:bg-neutral-50",
+            )}
+          >
+            QNA 작성
+          </Link>
+        </div>
+      ) : null}
     <section className="rounded-xl border-2 border-neutral-900 bg-white p-6">
-      <h1 className="text-xl font-semibold">내 반려동물 자랑하기</h1>
-      <p className="mt-1 text-sm text-neutral-500">나의 반려동물을 자랑해주세요...등등안내</p>
+      <h1 className="text-xl font-semibold">{writingQna ? "Q&A 작성" : "내 반려동물 자랑하기"}</h1>
+      <p className="mt-1 text-sm text-neutral-500">
+        {writingQna ? "궁금한 점을 남겨 주세요." : "나의 반려동물을 자랑해주세요...등등안내"}
+      </p>
       <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <label className="flex items-center justify-end gap-2 text-sm">
-          구독자 전용 게시물
-          <input type="checkbox" className="accent-neutral-900" {...register("isSubscriberOnly")} />
-        </label>
+        {writingQna ? null : (
+          <label className="flex items-center justify-end gap-2 text-sm">
+            구독자 전용 게시물
+            <input type="checkbox" className="accent-neutral-900" {...register("isSubscriberOnly")} />
+          </label>
+        )}
         <input
           placeholder="큰 제목"
           className="h-10 w-full rounded-md border-2 border-neutral-900 px-3 text-sm outline-none"
@@ -136,7 +189,39 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
         <input
           placeholder="태그(ex) #고양이 #강아지 #사랑 #펫토리그램으로 #좋아요완료)"
           className="h-10 w-full rounded-md border-2 border-neutral-900 px-3 text-sm outline-none"
-          {...register("hashtags")}
+          name={hashtagField.name}
+          ref={(element) => {
+            hashtagInputRef.current = element;
+            hashtagField.ref(element);
+          }}
+          onCompositionStart={() => {
+            hashtagComposing.current = true;
+          }}
+          onCompositionEnd={(event: CompositionEvent<HTMLInputElement>) => {
+            hashtagComposing.current = false;
+            setValue("hashtags", prefixHashtags(event.currentTarget.value), { shouldDirty: true });
+          }}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            if (hashtagComposing.current) {
+              return;
+            }
+            const next = prefixHashtags(event.target.value);
+            setValue("hashtags", next, { shouldDirty: true });
+            if ((event.target.selectionStart ?? 0) < event.target.value.length) {
+              return;
+            }
+            requestAnimationFrame(() => {
+              const input = hashtagInputRef.current;
+              if (input === null) {
+                return;
+              }
+              input.setSelectionRange(next.length, next.length);
+            });
+          }}
+          onBlur={(event) => {
+            setValue("hashtags", prefixHashtags(event.target.value).trim(), { shouldDirty: true });
+            hashtagField.onBlur(event);
+          }}
         />
         <textarea
           placeholder="내용"
@@ -166,6 +251,7 @@ export function PostComposerPage({ mode }: PostComposerPageProps) {
           </button>
         </div>
       </form>
+    </section>
     </section>
   );
 }

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { z } from "zod";
+import { isEmailTaken } from "@/api/auth";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { AuthField } from "@/components/auth/AuthField";
 import { SketchButton } from "@/components/auth/SketchButton";
@@ -23,27 +24,69 @@ const accountSchema = z
 
 type AccountFormValues = z.infer<typeof accountSchema>;
 
+interface FieldCheck {
+  value: string;
+  ok: boolean;
+  message: string;
+}
+
 export function SignupAccountPage() {
   const navigate = useNavigate();
-  const [emailCheck, setEmailCheck] = useState<string | null>(null);
+  const [emailCheck, setEmailCheck] = useState<FieldCheck | null>(null);
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
   const {
     register,
     handleSubmit,
     getValues,
+    watch,
     formState: { errors },
   } = useForm<AccountFormValues>({
     resolver: zodResolver(accountSchema),
     defaultValues: { email: "", password: "", passwordConfirm: "" },
   });
 
-  const checkEmail = (): void => {
-    const parsed = z.email().safeParse(getValues("email"));
-    setEmailCheck(parsed.success ? "사용 가능한 이메일 형식입니다." : "이메일 형식을 확인해 주세요.");
+  const emailValue = watch("email").trim();
+  const shownEmailCheck = emailCheck?.value === emailValue ? emailCheck : null;
+
+  const checkEmail = async (): Promise<void> => {
+    const email = getValues("email").trim();
+    if (!z.email().safeParse(email).success) {
+      setEmailCheck({ value: email, ok: false, message: "이메일 형식을 확인해 주세요." });
+      return;
+    }
+
+    setCheckingEmail(true);
+    try {
+      const taken = await isEmailTaken(email);
+      if (getValues("email").trim() !== email) {
+        return;
+      }
+      setEmailCheck({
+        value: email,
+        ok: !taken,
+        message: taken ? "이미 사용 중인 아이디입니다." : "사용 가능한 아이디입니다.",
+      });
+    } catch (error: unknown) {
+      if (getValues("email").trim() !== email) {
+        return;
+      }
+      const message = error instanceof Error ? error.message : "중복 확인에 실패했습니다.";
+      setEmailCheck({ value: email, ok: false, message });
+    } finally {
+      setCheckingEmail(false);
+    }
   };
 
   const onSubmit = (values: AccountFormValues): void => {
-    const draft: SignupAccountDraft = { email: values.email, password: values.password };
+    const email = values.email.trim();
+    if (emailCheck?.ok !== true || emailCheck.value !== email) {
+      if (emailCheck?.value !== email) {
+        setEmailCheck({ value: email, ok: false, message: "아이디 중복체크를 해 주세요." });
+      }
+      return;
+    }
+    const draft: SignupAccountDraft = { email, password: values.password };
     void navigate("/signup/pet", { state: draft });
   };
 
@@ -55,12 +98,19 @@ export function SignupAccountPage() {
             label="아이디(이메일)"
             type="email"
             autoComplete="email"
-            actionLabel="중복체크"
-            onAction={checkEmail}
+            actionLabel={checkingEmail ? "확인 중" : "중복체크"}
+            actionDisabled={checkingEmail}
+            onAction={() => {
+              void checkEmail();
+            }}
             error={errors.email?.message}
             {...register("email")}
           />
-          {emailCheck ? <p className="text-xs text-neutral-500">{emailCheck}</p> : null}
+          {shownEmailCheck ? (
+            <p className={`text-xs ${shownEmailCheck.ok ? "text-green-700" : "text-red-600"}`}>
+              {shownEmailCheck.message}
+            </p>
+          ) : null}
         </div>
         <AuthField
           label="비밀번호"

@@ -4,9 +4,14 @@ import {
   isPaymentCompleteResult,
   type PaymentCompleteRequest,
   type PaymentCompleteResult,
+  type PaymentHistoryResponse,
   type PaymentPrepareRequest,
   type PaymentPrepareResponse,
 } from "@/types/payment";
+
+export function getMyPayments(signal?: AbortSignal): Promise<PaymentHistoryResponse[]> {
+  return apiClient<PaymentHistoryResponse[]>("/payments/me", { signal });
+}
 
 export function preparePayment(payload: PaymentPrepareRequest): Promise<PaymentPrepareResponse> {
   return apiClient<PaymentPrepareResponse>("/payments/prepare", {
@@ -29,7 +34,7 @@ export async function completePayment(
       return error.body;
     }
     if (error instanceof ApiError && error.status === 502) {
-      throw new Error("잠시 후 다시 시도해 주세요.");
+      throw new Error("잠시 후 다시 시도해 주세요.", { cause: error });
     }
     throw error;
   }

@@ -1,11 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
-import { Bell, Search, UserRound } from "lucide-react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
+import { Search, UserRound } from "lucide-react";
 import { normalizeHashtag } from "@/lib/postFormat";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 export function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
   const user = useAuthStore((state) => state.user);
@@ -21,7 +22,9 @@ export function Header() {
   const onSearch = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     const hashtag = normalizeHashtag(query);
-    void navigate(hashtag === "" ? "/" : `/?q=${encodeURIComponent(hashtag)}`);
+    const onQna = location.pathname === "/qna" || location.pathname.startsWith("/qna/");
+    const path = onQna ? "/qna" : "/";
+    void navigate(hashtag === "" ? path : `${path}?q=${encodeURIComponent(hashtag)}`);
   };
 
   return (
@@ -46,9 +49,6 @@ export function Header() {
           </div>
         </form>
         <div className="flex items-center gap-2 text-sm">
-          <button type="button" aria-label="알림" className="rounded-md p-1 hover:bg-neutral-100">
-            <Bell className="size-5" />
-          </button>
           {isLoggedIn ? (
             <>
               {user !== null && user.id > 0 ? (

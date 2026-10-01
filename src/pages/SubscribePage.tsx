@@ -11,7 +11,7 @@ function won(amount: number): string {
 }
 
 function resultText(result: PaymentCompleteResult): string {
-  if (result.status === "PAID") {
+  if (result.status === "PAID" && result.paidAmount !== null) {
     return `${won(result.paidAmount)}원 팬클럽 구독이 완료되었습니다.`;
   }
   if (result.status === "READY") {
@@ -62,6 +62,7 @@ export function SubscribePage() {
         targetMemberId: profile.id,
         totalAmount: FANCLUB_MONTHLY_AMOUNT,
         orderName: FANCLUB_ORDER_NAME,
+        merchandise: "automaticPayment",
       });
       if (result === null) {
         setNotice("결제창으로 이동합니다.");

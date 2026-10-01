@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
+import { deleteQna } from "@/api/qna";
 import { deletePost } from "@/api/posts";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 import { OtherProfileActions } from "@/components/OtherProfileActions";
@@ -9,6 +10,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useProfilePosts, type ProfileTab } from "@/hooks/useProfilePosts";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useIsSubscribedTo } from "@/stores/useSubscriptionStore";
 
 const TABS: { id: ProfileTab; label: string }[] = [
   { id: "my", label: "MY" },
@@ -21,6 +23,7 @@ export function ProfilePage() {
   const { memberId } = useParams();
   const { profile, status, errorMessage } = useProfile(memberId);
   const myId = useAuthStore((state) => state.user?.id ?? null);
+  const viewerSubscribed = useIsSubscribedTo(profile?.id ?? null);
   const isOwn = profile !== null && myId !== null && myId > 0 && myId === profile.id;
   const [tab, setTab] = useState<ProfileTab>("my");
   const [followers, setFollowers] = useState(0);
@@ -64,7 +67,11 @@ export function ProfilePage() {
     setDeleteBusy(true);
     setDeleteError(null);
     try {
-      await deletePost(deleteId);
+      if (tab === "qna") {
+        await deleteQna(deleteId);
+      } else {
+        await deletePost(deleteId);
+      }
       list.removePost(deleteId);
       setDeleteId(null);
     } catch (error: unknown) {
@@ -117,9 +124,11 @@ export function ProfilePage() {
         <ProfilePostGrid
           posts={list.posts}
           handle={profile.nickname}
-          canManage={isOwn && tab === "my"}
-          hideLocked={!isOwn}
-          onEdit={(postId) => void navigate(`/posts/${postId}/edit`)}
+          canManage={isOwn && tab !== "scrap"}
+          isOwn={isOwn}
+          viewerSubscribed={viewerSubscribed}
+          detailPath={(postId) => (tab === "qna" ? `/qna/${postId}` : `/posts/${postId}`)}
+          onEdit={(postId) => void navigate(tab === "qna" ? `/qna/${postId}/edit` : `/posts/${postId}/edit`)}
           onDelete={setDeleteId}
         />
       ) : null}

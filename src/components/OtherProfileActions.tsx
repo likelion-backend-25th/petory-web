@@ -67,9 +67,6 @@ export function OtherProfileActions({
           {following ? "팔로잉" : "팔로우 하기"}
           {following ? null : <Plus className="size-4" aria-hidden />}
         </button>
-        <Link to="/chat" className={actionClass}>
-          대화하기
-        </Link>
       </div>
       {followError ? <p className="text-right text-xs text-red-600">{followError}</p> : null}
       <SnackSupportModal

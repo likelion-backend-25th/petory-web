@@ -11,10 +11,6 @@ export function ComingSoonPage({ title }: ComingSoonPageProps) {
   );
 }
 
-export function RankingPage() {
-  return <ComingSoonPage title="인기/핫 랭킹" />;
-}
-
 export function ClubPage() {
   return <ComingSoonPage title="P클럽 찾기" />;
 }

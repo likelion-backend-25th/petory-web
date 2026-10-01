@@ -13,6 +13,7 @@ export interface PostListItem {
   imageUrls: string[];
   likeCount: number;
   commentCount: number;
+  viewCount: number | null;
 }
 
 export interface PostListSlice {
@@ -40,6 +41,7 @@ export interface PostDetail {
   authorProfileImage: string | null;
   createdAt: string;
   updatedAt: string;
+  viewCount: number;
   comments: PostComment[];
 }
 

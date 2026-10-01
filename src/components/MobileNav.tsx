@@ -8,7 +8,6 @@ const items = [
   { to: "/club", label: "클럽", end: false },
   { to: "/missing-pets", label: "실종신고", end: false },
   { to: "/qna", label: "QnA", end: false },
-  { to: "/chat", label: "채팅", end: false },
   { to: "/mypage", label: "마이", end: false },
   { to: "/posts/new", label: "작성", end: false },
 ] as const;
