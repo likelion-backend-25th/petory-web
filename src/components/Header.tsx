@@ -29,11 +29,11 @@ export function Header() {
 
   return (
     <header className="border-b-2 border-neutral-900 bg-white">
-      <div className="flex h-14 items-center justify-between gap-3 px-4">
-        <Link to="/" className="font-brand text-xl tracking-wide md:hidden">
+      <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-4">
+        <Link to="/" className="font-brand shrink-0 text-xl tracking-wide md:hidden">
           petory
         </Link>
-        <form className="mx-auto flex w-full max-w-md items-center gap-2" onSubmit={onSearch}>
+        <form className="mx-auto flex min-w-0 flex-1 items-center gap-2 sm:max-w-md" onSubmit={onSearch}>
           <label className="sr-only" htmlFor="feed-search">
             해시태그 검색
           </label>
@@ -48,7 +48,7 @@ export function Header() {
             />
           </div>
         </form>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex shrink-0 items-center gap-2 text-sm">
           {isLoggedIn ? (
             <>
               {user !== null && user.id > 0 ? (
@@ -65,7 +65,7 @@ export function Header() {
               </button>
             </>
           ) : (
-            <Link to="/login" className="rounded-md border-2 border-neutral-900 px-3 py-1 font-medium">
+            <Link to="/login" className="whitespace-nowrap rounded-md border-2 border-neutral-900 px-3 py-1 font-medium">
               로그인
             </Link>
           )}

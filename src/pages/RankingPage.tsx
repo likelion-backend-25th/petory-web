@@ -45,7 +45,7 @@ export function RankingPage() {
   return (
     <section className="space-y-4">
       <header className="rounded-xl border-2 border-neutral-900 bg-white px-5 py-4">
-        <h1 className="text-xl font-semibold">인기/핫 랭킹</h1>
+        <h1 className="text-xl font-semibold">인기랭킹</h1>
         <p className="mt-1 text-sm text-neutral-500">팔로워가 많은 순입니다.</p>
       </header>
       {status === "loading" ? <p className="text-neutral-500">랭킹을 불러오는 중...</p> : null}

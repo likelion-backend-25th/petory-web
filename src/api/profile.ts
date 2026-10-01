@@ -172,3 +172,7 @@ export function removeFollower(memberId: number, targetId: number): Promise<void
     method: "DELETE",
   });
 }
+
+export function deleteMyProfile(memberId: number): Promise<void> {
+  return apiClient<void>(`/profile/${memberId}/delete`, { method: "POST" });
+}

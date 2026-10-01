@@ -6,7 +6,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 
 const navItems = [
   { to: "/", label: "홈", icon: Home, end: true },
-  { to: "/ranking", label: "인기/핫 랭킹", icon: Flame, end: false },
+  { to: "/ranking", label: "인기랭킹", icon: Flame, end: false },
   { to: "/missing-pets", label: "실종동물 신고", icon: MapPinned, end: false },
   { to: "/qna", label: "QnA", icon: HelpCircle, end: false },
 ] as const;
