@@ -1,8 +1,10 @@
+export type PaymentMerchandise = "singlePayment" | "automaticPayment";
+
 export interface PaymentPrepareRequest {
   targetMemberId: number;
   orderName: string;
   totalAmount: number;
-  payMethod: string;
+  merchandise: PaymentMerchandise;
 }
 
 export interface PaymentPrepareResponse {

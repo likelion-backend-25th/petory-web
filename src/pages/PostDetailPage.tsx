@@ -8,6 +8,7 @@ import type { PostBoard } from "@/hooks/usePostFeed";
 import { usePostDetail } from "@/hooks/usePostDetail";
 import { formatPostDate, isSubscriberOnly, parseHashtags, toHandle } from "@/lib/postFormat";
 import { canViewSubscriberPost } from "@/lib/subscriberAccess";
+import { displayViewCount } from "@/lib/viewCounts";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useSubscribedMemberIds } from "@/stores/useSubscriptionStore";
 
@@ -131,7 +132,7 @@ export function PostDetailPage({ board = "feed" }: { board?: PostBoard }) {
           </span>
           <span className="inline-flex items-center gap-1">
             <Eye className="size-4" aria-hidden />
-            조회 {post.viewCount}
+            조회 {displayViewCount(post.id, post.viewCount)}
           </span>
         </div>
       </div>

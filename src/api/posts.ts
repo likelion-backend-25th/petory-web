@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
+import { rememberViewCount } from "@/lib/viewCounts";
 import type {
   PostComment,
   PostCreateRequest,
@@ -56,10 +57,12 @@ function readComments(value: unknown): PostComment[] {
 
 export async function getPost(postId: number, signal?: AbortSignal): Promise<PostDetail> {
   const raw = await apiClient<PostDetail & { comments?: unknown }>(`/posts/${postId}`, { signal });
+  const viewCount = typeof raw.viewCount === "number" ? raw.viewCount : 0;
+  rememberViewCount(raw.id, viewCount);
   return {
     ...raw,
     comments: readComments(raw.comments),
-    viewCount: typeof raw.viewCount === "number" ? raw.viewCount : 0,
+    viewCount,
   };
 }
 

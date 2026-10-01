@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
+import { rememberViewCount } from "@/lib/viewCounts";
 import type {
   PostComment,
   PostCreateRequest,
@@ -79,10 +80,12 @@ export async function searchQnaPosts(
 
 export async function getQna(postId: number, signal?: AbortSignal): Promise<PostDetail> {
   const raw = await apiClient<PostDetail & { comments?: unknown }>(`/qna/${postId}`, { signal });
+  const viewCount = typeof raw.viewCount === "number" ? raw.viewCount : 0;
+  rememberViewCount(raw.id, viewCount);
   return {
     ...raw,
     comments: readComments(raw.comments),
-    viewCount: typeof raw.viewCount === "number" ? raw.viewCount : 0,
+    viewCount,
   };
 }
 

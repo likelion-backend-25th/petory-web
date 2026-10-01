@@ -1,10 +1,9 @@
 import * as PortOne from "@portone/browser-sdk/v2";
 import { completePayment, preparePayment } from "@/api/payments";
-import { FANCLUB_ORDER_NAME } from "@/lib/fanclub";
 import { clearFanclubTarget, stageFanclubTarget } from "@/lib/subscriberAccess";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
-import type { PaymentCompleteResult } from "@/types/payment";
+import type { PaymentCompleteResult, PaymentMerchandise } from "@/types/payment";
 
 const PAY_METHOD = "EASY_PAY";
 const SNACK_ORDER_NAME = "간식쏘기";
@@ -20,6 +19,7 @@ export async function startPortOnePayment(input: {
   targetMemberId: number;
   totalAmount: number;
   orderName: string;
+  merchandise: PaymentMerchandise;
 }): Promise<PaymentCompleteResult | null> {
   const storeId = import.meta.env.VITE_PORTONE_STORE_ID?.trim();
   const channelKey = import.meta.env.VITE_PORTONE_CHANNEL_KEY?.trim();
@@ -32,10 +32,10 @@ export async function startPortOnePayment(input: {
     targetMemberId: input.targetMemberId,
     orderName: input.orderName,
     totalAmount: input.totalAmount,
-    payMethod: PAY_METHOD,
+    merchandise: input.merchandise,
   });
 
-  const fanclub = input.orderName === FANCLUB_ORDER_NAME;
+  const fanclub = input.merchandise === "automaticPayment";
   if (fanclub) {
     stageFanclubTarget(input.targetMemberId);
   } else {
@@ -94,5 +94,5 @@ export function startSnackPayment(input: {
   targetMemberId: number;
   totalAmount: number;
 }): Promise<PaymentCompleteResult | null> {
-  return startPortOnePayment({ ...input, orderName: SNACK_ORDER_NAME });
+  return startPortOnePayment({ ...input, orderName: SNACK_ORDER_NAME, merchandise: "singlePayment" });
 }

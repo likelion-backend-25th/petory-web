@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { Eye, Heart, MessageCircle } from "lucide-react";
 import { PostImageCarousel } from "@/components/PostGallery";
 import { formatPostDate, isSubscriberOnly, parseHashtags } from "@/lib/postFormat";
+import { displayViewCount } from "@/lib/viewCounts";
 import type { PostListItem } from "@/types/post";
 
 interface PostCardProps {
@@ -61,7 +62,7 @@ export function PostCard({ post, detailPath = `/posts/${post.id}` }: PostCardPro
           <span className="inline-flex items-center gap-1">
             <Eye className="size-4" aria-hidden />
             <span className="sr-only">조회수</span>
-            {post.viewCount ?? 0}
+            {displayViewCount(post.id, post.viewCount)}
           </span>
         </footer>
       </Link>

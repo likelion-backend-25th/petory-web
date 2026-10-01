@@ -62,6 +62,7 @@ export function SubscribePage() {
         targetMemberId: profile.id,
         totalAmount: FANCLUB_MONTHLY_AMOUNT,
         orderName: FANCLUB_ORDER_NAME,
+        merchandise: "automaticPayment",
       });
       if (result === null) {
         setNotice("결제창으로 이동합니다.");
