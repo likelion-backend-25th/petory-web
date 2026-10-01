@@ -43,6 +43,12 @@ function OwnActions({ memberId }: { memberId: number }) {
         결제 내역
       </Link>
       <Link
+        to={`/profile/${memberId}/plans`}
+        className="rounded-md border-2 border-neutral-900 px-6 py-2 text-sm font-medium hover:bg-neutral-50"
+      >
+        구독플랜 설정
+      </Link>
+      <Link
         to="/subscriptions"
         className="rounded-md border-2 border-neutral-900 px-6 py-2 text-sm font-medium hover:bg-neutral-50"
       >

@@ -22,6 +22,7 @@ import { QnaPage } from "@/pages/QnaPage";
 import { RankingPage } from "@/pages/RankingPage";
 import { PostComposerPage } from "@/pages/PostComposerPage";
 import { PostDetailPage } from "@/pages/PostDetailPage";
+import { PlanSettingsPage } from "@/pages/PlanSettingsPage";
 import { ProfileEditPage } from "@/pages/ProfileEditPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
@@ -86,6 +87,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <MyPageRedirect />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "profile/:memberId/plans",
+        element: (
+          <ProtectedRoute>
+            <PlanSettingsPage />
           </ProtectedRoute>
         ),
       },

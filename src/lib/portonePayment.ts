@@ -1,5 +1,12 @@
 import * as PortOne from "@portone/browser-sdk/v2";
 import { completePayment, preparePayment } from "@/api/payments";
+import { createSubscription } from "@/api/subscription";
+import {
+  clearPendingSubscription,
+  readPendingSubscription,
+  stagePendingSubscription,
+  type PendingFanclubSubscription,
+} from "@/lib/fanclub";
 import { clearFanclubTarget, stageFanclubTarget } from "@/lib/subscriberAccess";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
@@ -95,4 +102,89 @@ export function startSnackPayment(input: {
   totalAmount: number;
 }): Promise<PaymentCompleteResult | null> {
   return startPortOnePayment({ ...input, orderName: SNACK_ORDER_NAME, merchandise: "singlePayment" });
+}
+
+function grantFanclub(targetMemberId: number): void {
+  const viewerId = useAuthStore.getState().user?.id ?? null;
+  if (viewerId !== null) {
+    useSubscriptionStore.getState().grant(viewerId, targetMemberId);
+  }
+}
+
+function readPortOneConfig(): { storeId: string; channelKey: string } {
+  const storeId = import.meta.env.VITE_PORTONE_STORE_ID?.trim();
+  const channelKey = import.meta.env.VITE_PORTONE_CHANNEL_KEY?.trim();
+  if (!storeId || !channelKey) {
+    throw new Error("PortOne 상점 설정이 없습니다. 환경 변수를 확인해 주세요.");
+  }
+  return { storeId, channelKey };
+}
+
+export async function startFanclubSubscription(
+  pending: PendingFanclubSubscription,
+): Promise<PendingFanclubSubscription | null> {
+  const { storeId, channelKey } = readPortOneConfig();
+  const user = useAuthStore.getState().user;
+  stagePendingSubscription(pending);
+
+  let issued: Awaited<ReturnType<typeof PortOne.requestIssueBillingKey>>;
+  try {
+    issued = await PortOne.requestIssueBillingKey({
+      storeId,
+      channelKey,
+      billingKeyMethod: "EASY_PAY",
+      issueId: `billing-${crypto.randomUUID()}`,
+      issueName: `${pending.nickname} ${pending.planName}`,
+      displayAmount: pending.price,
+      currency: "KRW",
+      customer: {
+        customerId: user !== null ? String(user.id) : undefined,
+        fullName: user?.nickname,
+        email: user?.email.includes("@") ? user.email : undefined,
+      },
+      easyPay: { easyPayProvider: "KAKAOPAY" },
+      redirectUrl: `${window.location.origin}/payments/return`,
+    });
+  } catch (error: unknown) {
+    clearPendingSubscription();
+    throw error;
+  }
+
+  if (issued === undefined) {
+    return null;
+  }
+  const billingKey = issued.billingKey;
+  if (issued.code !== undefined || billingKey.trim() === "") {
+    clearPendingSubscription();
+    throw new PaymentCanceledError(issued.message ?? "결제가 취소되었습니다.");
+  }
+
+  try {
+    await createSubscription(pending.targetMemberId, {
+      targetMemberId: pending.targetMemberId,
+      planId: pending.planId,
+      billingKey,
+    });
+    grantFanclub(pending.targetMemberId);
+    clearPendingSubscription();
+    return pending;
+  } catch (error: unknown) {
+    clearPendingSubscription();
+    throw error;
+  }
+}
+
+export async function finishFanclubSubscription(billingKey: string): Promise<PendingFanclubSubscription> {
+  const pending = readPendingSubscription();
+  if (pending === null) {
+    throw new Error("구독 정보를 찾지 못했습니다. 구독 페이지에서 다시 시도해 주세요.");
+  }
+  await createSubscription(pending.targetMemberId, {
+    targetMemberId: pending.targetMemberId,
+    planId: pending.planId,
+    billingKey,
+  });
+  grantFanclub(pending.targetMemberId);
+  clearPendingSubscription();
+  return pending;
 }
