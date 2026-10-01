@@ -1,6 +1,7 @@
 import { Link } from "react-router";
-import { Eye, Heart, MessageCircle } from "lucide-react";
+import { Eye, MessageCircle } from "lucide-react";
 import { BookmarkButton } from "@/components/BookmarkButton";
+import { LikeButton } from "@/components/LikeButton";
 import { PostImageCarousel } from "@/components/PostGallery";
 import { formatPostDate, isSubscriberOnly, parseHashtags } from "@/lib/postFormat";
 import { displayViewCount } from "@/lib/viewCounts";
@@ -53,21 +54,18 @@ export function PostCard({ post, detailPath = `/posts/${post.id}` }: PostCardPro
         </Link>
       ) : null}
       <footer className="flex items-center justify-between gap-3 text-sm text-neutral-500">
-        <Link to={detailPath} className="flex items-center gap-4">
-          <span className="inline-flex items-center gap-1">
-            <Heart className="size-4" aria-hidden />
-            {post.likeCount}
-          </span>
-          <span className="inline-flex items-center gap-1">
+        <div className="flex items-center gap-4">
+          <LikeButton postId={post.id} likeCount={post.likeCount} from={detailPath} />
+          <Link to={detailPath} className="inline-flex items-center gap-1">
             <MessageCircle className="size-4" aria-hidden />
             {post.commentCount}
-          </span>
-          <span className="inline-flex items-center gap-1">
+          </Link>
+          <Link to={detailPath} className="inline-flex items-center gap-1">
             <Eye className="size-4" aria-hidden />
             <span className="sr-only">조회수</span>
             {displayViewCount(post.id, post.viewCount)}
-          </span>
-        </Link>
+          </Link>
+        </div>
         <BookmarkButton postId={post.id} from={detailPath} />
       </footer>
     </article>

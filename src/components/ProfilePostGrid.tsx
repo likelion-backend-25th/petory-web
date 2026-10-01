@@ -1,5 +1,6 @@
 import { Link } from "react-router";
-import { Bookmark, Heart, MessageCircle } from "lucide-react";
+import { Bookmark, MessageCircle } from "lucide-react";
+import { LikeButton } from "@/components/LikeButton";
 import { toHandle } from "@/lib/postFormat";
 import type { MyPagePost } from "@/types/profile";
 
@@ -67,28 +68,31 @@ export function ProfilePostGrid({
         const label = lockLabel(post, isOwn, viewerSubscribed);
         return (
           <li key={post.id} className="group relative">
-            <Link
-              to={detailPath(post.id)}
-              className="block overflow-hidden rounded-xl border-2 border-neutral-900 bg-white"
-            >
-              <PostFace post={post} label={label} />
+            <div className="overflow-hidden rounded-xl border-2 border-neutral-900 bg-white">
+              <Link to={detailPath(post.id)} className="block">
+                <PostFace post={post} label={label} />
+              </Link>
               {label !== null ? null : (
                 <div className="flex items-center justify-between gap-2 p-2 text-xs">
-                  <span className="truncate">{toHandle(handle)}</span>
+                  <Link to={detailPath(post.id)} className="truncate">
+                    {toHandle(handle)}
+                  </Link>
                   <span className="inline-flex items-center gap-2 text-neutral-500">
-                    <span className="inline-flex items-center gap-1">
-                      <Heart className="size-3" aria-hidden />
-                      {post.likeCount}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
+                    <LikeButton
+                      postId={post.id}
+                      likeCount={post.likeCount}
+                      from={detailPath(post.id)}
+                      iconClassName="size-3"
+                    />
+                    <Link to={detailPath(post.id)} className="inline-flex items-center gap-1">
                       <MessageCircle className="size-3" aria-hidden />
                       {post.commentCount}
-                    </span>
+                    </Link>
                     <Bookmark className="size-3" aria-hidden />
                   </span>
                 </div>
               )}
-            </Link>
+            </div>
             {canManage ? (
               <div className="absolute top-2 left-2 hidden gap-1 group-hover:flex">
                 <button
