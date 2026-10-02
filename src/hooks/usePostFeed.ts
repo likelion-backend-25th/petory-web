@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getQnaPosts, searchQnaPosts } from "@/api/qna";
 import { getPosts, searchPosts } from "@/api/posts";
-import type { PostListItem, PostListSlice } from "@/types/post";
+import type { PostListItem } from "@/types/post";
 
 export type PostBoard = "feed" | "qna";
 
-export const FEED_PAGE_SIZE = 3;
+export const FEED_PAGE_SIZE = 10;
 
 interface FeedState {
   posts: PostListItem[];
@@ -24,14 +24,6 @@ const initialState: FeedState = {
   errorMessage: null,
   isLoadingMore: false,
 };
-
-function resolveHasNext(page: PostListSlice): boolean {
-  if (page.hasNext) {
-    return true;
-  }
-  // 서버 hasNext가 false여도 페이지가 가득 차면 다음 커서를 한 번 더 확인한다.
-  return page.content.length >= FEED_PAGE_SIZE;
-}
 
 function mergePosts(current: PostListItem[], incoming: PostListItem[]): PostListItem[] {
   const seen = new Set(current.map((post) => post.id));
@@ -76,7 +68,7 @@ export function usePostFeed(hashtag = "", board: PostBoard = "feed") {
         }
         setState({
           posts: page.content,
-          hasNext: resolveHasNext(page),
+          hasNext: page.hasNext,
           lastPostId: page.lastPostId,
           status: "success",
           errorMessage: null,
@@ -120,13 +112,16 @@ export function usePostFeed(hashtag = "", board: PostBoard = "feed") {
       if (hashtagRef.current !== tag || boardRef.current !== currentBoard) {
         return;
       }
-      setState((prev) => ({
-        ...prev,
-        posts: mergePosts(prev.posts, page.content),
-        hasNext: resolveHasNext(page),
-        lastPostId: page.lastPostId,
-        isLoadingMore: false,
-      }));
+      setState((prev) => {
+        const posts = mergePosts(prev.posts, page.content);
+        return {
+          ...prev,
+          posts,
+          hasNext: posts.length > prev.posts.length && page.hasNext,
+          lastPostId: page.lastPostId,
+          isLoadingMore: false,
+        };
+      });
     } catch (error: unknown) {
       if (hashtagRef.current !== tag || boardRef.current !== currentBoard) {
         return;

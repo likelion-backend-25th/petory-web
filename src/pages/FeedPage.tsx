@@ -15,17 +15,14 @@ export function FeedPage() {
   const myId = useAuthStore((state) => state.user?.id ?? null);
   const subscribedAuthorIds = useSubscribedMemberIds();
   const { posts, hasNext, status, errorMessage, isLoadingMore, loadMore } = usePostFeed(hashtag);
-  const visiblePosts = posts.filter((post) => {
-    if (hashtag === "" && post.content.trim() === "첫 게시글이에요. 잘 부탁드려요!") {
-      return false;
-    }
-    return canViewSubscriberPost(isSubscriberOnly(post.isSubscriberOnly), post.memberId, myId, subscribedAuthorIds);
-  });
+  const visiblePosts = posts.filter((post) =>
+    canViewSubscriberPost(isSubscriberOnly(post.isSubscriberOnly), post.memberId, myId, subscribedAuthorIds),
+  );
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const node = sentinelRef.current;
-    if (!node || status !== "success" || !hasNext || errorMessage) {
+    if (!node || status !== "success" || !hasNext || errorMessage || isLoadingMore) {
       return;
     }
     const observer = new IntersectionObserver(
@@ -38,7 +35,7 @@ export function FeedPage() {
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [errorMessage, hasNext, loadMore, status]);
+  }, [errorMessage, hasNext, isLoadingMore, loadMore, posts.length, status]);
 
   return (
     <section className="space-y-6">
@@ -54,7 +51,7 @@ export function FeedPage() {
       {status === "error" && posts.length === 0 ? (
         <p className="text-sm text-red-600">{errorMessage}</p>
       ) : null}
-      {status === "success" && visiblePosts.length === 0 ? (
+      {status === "success" && visiblePosts.length === 0 && !hasNext && !isLoadingMore ? (
         <p className="text-neutral-500">
           {hashtag === "" ? "아직 게시글이 없습니다." : `#${hashtag} 게시글이 없습니다.`}
         </p>
